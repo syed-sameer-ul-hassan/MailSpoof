@@ -1,0 +1,16 @@
+Name: IT Helpdesk - Password Reset
+Category: Technical Support Fraud
+Severity: High
+From Email: helpdesk@targetcompany.com
+From Name: IT Support Team
+Subject: Action Required: Password Reset Verification
+Body:
+Dear User,
+
+We have detected suspicious activity on your account. For security purposes, you must verify your current password within 24 hours to prevent account suspension.
+
+Failure to verify will result in immediate account lockout.
+
+IT Support Team
+Do not reply to this email.
+Description: IT support impersonation for credential harvesting.

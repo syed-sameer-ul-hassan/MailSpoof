@@ -1,0 +1,21 @@
+Name: Microsoft 365 License Expired
+Category: Software/License Fraud
+Severity: Medium
+From Email: noreply@microsoft.com
+From Name: Microsoft 365 Admin
+Subject: ACTION REQUIRED: Your Microsoft 365 License Expires Today
+Body:
+Your Microsoft 365 Business license expires today at 11:59 PM.
+
+Immediate action required to prevent:
+  ✗ Loss of email access
+  ✗ File synchronization stoppage
+  ✗ Team collaboration disruption
+
+Renew immediately to maintain access.
+
+Your license key: M365-BIZ-2024-XXXX
+
+Microsoft 365 Administration
+This is an automated renewal notice.
+Description: Microsoft service impersonation for credential theft.
