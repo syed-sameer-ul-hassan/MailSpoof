@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use MailSpoof in your research, please cite it as below."
+title: "MailSpoof"
+abstract: "Professional Email Spoofing and Phishing Simulation Framework for authorized penetration testing and security research."
+type: software
+authors:
+  - family-names: "Hassan"
+    given-names: "Syed Sameer Ul"
+repository-code: "https://github.com/syed-sameer-ul-hassan/MailSpoof"
+license: Apache-2.0
+keywords:
+  - email spoofing
+  - phishing simulation
+  - penetration testing
+  - red team
+  - smtp testing
+  - security audit
+  - social engineering
+  - cybersecurity

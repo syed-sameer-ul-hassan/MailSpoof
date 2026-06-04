@@ -1,0 +1,16 @@
+Name: CEO Fraud - Wire Transfer
+Category: Business Email Compromise
+Severity: Critical
+From Email: ceo@targetcompany.com
+From Name: John Smith, CEO
+Subject: URGENT: Wire Transfer Authorization Required
+Body:
+I need you to process an urgent wire transfer for $85,000 to our new vendor immediately. This is time-sensitive and confidential.
+
+Amount: $85,000
+Account details will be provided separately.
+
+Regards,
+John Smith
+Chief Executive Officer
+Description: CEO impersonation requesting urgent financial transaction.

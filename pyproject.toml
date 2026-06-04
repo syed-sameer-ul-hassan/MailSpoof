@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mailspoof"
+version = "1.0.0"
+description = "Professional Email Spoofing and Phishing Simulation Framework"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.8"
+authors = [
+    {name = "Syed Sameer Ul Hassan"},
+]
+keywords = [
+    "email spoofing",
+    "phishing simulation",
+    "penetration testing",
+    "red team",
+    "smtp testing",
+    "security audit",
+    "social engineering",
+    "cybersecurity",
+    "email security",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Information Technology",
+    "Topic :: Security",
+    "Topic :: Communications :: Email",
+    "Topic :: Software Development :: Testing",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "dnspython>=2.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/syed-sameer-ul-hassan/MailSpoof"
+Repository = "https://github.com/syed-sameer-ul-hassan/MailSpoof"
+Issues = "https://github.com/syed-sameer-ul-hassan/MailSpoof/issues"
+Documentation = "https://github.com/syed-sameer-ul-hassan/MailSpoof/blob/main/README.md"
+
+[project.scripts]
+mailspoof = "mailspoof:main"
+
+[tool.setuptools]
+packages = ["lib"]
+include-package-data = true
