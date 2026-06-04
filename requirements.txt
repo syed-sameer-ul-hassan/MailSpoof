@@ -1,0 +1,9 @@
+# MailSpoof - Professional Email Security Assessment Framework
+# Python 3.8+
+
+# DNS resolution for MX record lookups
+dnspython>=2.1.0
+
+# Build tooling
+setuptools>=45.0
+wheel>=0.36.0
