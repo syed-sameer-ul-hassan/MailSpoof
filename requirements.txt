@@ -6,4 +6,4 @@ dnspython>=2.1.0
 
 # Build tooling
 setuptools>=45.0
-wheel>=0.36.0
+wheel>=0.47.0
