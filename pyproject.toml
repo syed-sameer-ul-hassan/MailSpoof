@@ -39,7 +39,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "dnspython>=2.0",
+    "dnspython>=2.7.0",
 ]
 
 [project.urls]

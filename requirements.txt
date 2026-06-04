@@ -2,7 +2,7 @@
 # Python 3.8+
 
 # DNS resolution for MX record lookups
-dnspython>=2.1.0
+dnspython>=2.7.0
 
 # Build tooling
 setuptools>=45.0
