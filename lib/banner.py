@@ -1,4 +1,3 @@
-
 from lib.core import __version__
 
 C = "\033[96m"
