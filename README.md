@@ -1,7 +1,11 @@
 <div align="center">
-<h2> ⚠️ Disclaimer</h2>
-the tool hass issues installing MailSpoof pkgs I am working on it it will be resolve in 2 days on 8-jun-2026
+
+| ⚠️ **Maintenance Notice** |
+| :--- |
+| We are currently experiencing issues installing `MailSpoof` packages. <br> Active fixes are underway, with a resolution expected by **June 8, 2026**. |
+
 </div>
+
 
 <p align="center">
   <img src="assets/logo.svg" alt="MailSpoof Logo" width="500">
