@@ -1,6 +1,6 @@
 <div align="center">
 <h2> ⚠️ Disclaimer</h2>
->the tool hass issues installing MailSpoof pkgs I am working on it it will be resolve in 2 days on 8-jun-2026
+the tool hass issues installing MailSpoof pkgs I am working on it it will be resolve in 2 days on 8-jun-2026
 </div>
 
 <p align="center">
