@@ -1,4 +1,7 @@
-
+<div align="center">
+<h2> Disclaimer</h2>
+<p> the tool hass issues installing MailSpoof pkgs I am working on it it will be resolve in 2 days </p>
+</div>
 
 <p align="center">
   <img src="assets/logo.svg" alt="MailSpoof Logo" width="500">
