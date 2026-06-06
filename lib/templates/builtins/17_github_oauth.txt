@@ -1,0 +1,34 @@
+Name: GitHub OAuth Re-Authentication
+Category: Developer Platform Phishing
+Severity: High
+From Email: noreply@github.com
+From Name: GitHub Security
+Subject: Re-Authenticate OAuth Access for Your Organization
+Body:
+<html>
+  <body style="font-family:'Helvetica Neue', Arial, sans-serif; color:#0f172a;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; margin:0 auto;">
+      <tr>
+        <td style="padding:12px 0; text-align:center;">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub" style="height:32px;" />
+        </td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #e5e7eb; padding:16px; border-radius:8px; font-size:14px; line-height:1.6; background:#f8fafc;">
+          <p><strong>Your organization tokens require re-authentication.</strong></p>
+          <ul style="padding-left:18px;">
+            <li>App: CI/CD Integration</li>
+            <li>Scopes: repo, workflow</li>
+            <li>Action deadline: {TODAY}</li>
+          </ul>
+          <p>Continue access by re-authenticating OAuth permissions.</p>
+          <p>
+            <a href="https://github-security.example.net/oauth" style="background:#24292f; color:#fff; padding:12px 16px; text-decoration:none; border-radius:4px;">Re-Authenticate</a>
+          </p>
+          <p style="color:#6b7280; font-size:12px;">If not renewed, integrations may fail.</p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+Description: GitHub impersonation pushing OAuth re-authentication for repo access.

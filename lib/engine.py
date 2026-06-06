@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import smtplib
 import time
+import re
+import html
 from datetime import datetime
 from email.header import Header
 from email.mime.multipart import MIMEMultipart
@@ -15,7 +17,7 @@ G = "\033[92m"
 Y = "\033[93m"
 D = "\033[0m"
 
-def _disclaimer(scenario_name: str, category: str, severity: str, version: str) -> str:
+def _disclaimer_text(scenario_name: str, category: str, severity: str, version: str) -> str:
     return (
         f"\n{'─' * 64}\n"
         "This email was sent using MailSpoof for authorized security testing.\n"
@@ -29,6 +31,27 @@ def _disclaimer(scenario_name: str, category: str, severity: str, version: str) 
         f"{'─' * 64}"
     )
 
+def _disclaimer_html(scenario_name: str, category: str, severity: str, version: str) -> str:
+    return (
+        "<hr style=\"margin:18px 0; border:0; border-top:1px solid #e5e7eb;\">"
+        "<p style=\"font-size:12px; color:#6b7280; line-height:1.6;\">"
+        "This email was sent using <strong>MailSpoof</strong> for authorized security testing.<br>"
+        "If you received this unexpectedly, contact your IT security team.<br><br>"
+        f"Test Details:<br>"
+        f"Scenario: {html.escape(scenario_name)}<br>"
+        f"Category: {html.escape(category)}<br>"
+        f"Severity: {html.escape(severity)}<br>"
+        f"Timestamp: {datetime.now().isoformat()}<br><br>"
+        f"MailSpoof v{html.escape(version)} - Professional Email Security Assessment"
+        "</p>"
+    )
+
+def _strip_html(html_body: str) -> str:
+    text = re.sub(r"<\s*br\s*/?>", "\n", html_body, flags=re.IGNORECASE)
+    text = re.sub(r"<\s*/p\s*>", "\n\n", text, flags=re.IGNORECASE)
+    text = re.sub(r"<[^>]+>", "", text)
+    return html.unescape(text)
+
 def build_mime_email(
     from_email: str,
     from_name: str,
@@ -38,7 +61,7 @@ def build_mime_email(
     scenario_name: str = "Custom",
     category: str = "Custom Test",
     severity: str = "N/A",
-    version: str = "1.0.0",
+    version: str = "1.1.0",
 ) -> str:
     msg = MIMEMultipart("alternative")
     msg["From"] = f"{from_name} <{from_email}>"
@@ -48,8 +71,20 @@ def build_mime_email(
     domain = from_email.split("@")[1] if "@" in from_email else "localhost"
     msg["Message-ID"] = make_msgid(domain=domain)
 
-    full_body = body + _disclaimer(scenario_name, category, severity, version)
-    msg.attach(MIMEText(full_body, "plain", "utf-8"))
+    is_html = "<html" in body.lower()
+
+    if is_html:
+        plain_body = _strip_html(body)
+        html_body = body
+    else:
+        plain_body = body
+        html_body = f"<html><body><pre style=\"font-family:Arial, sans-serif; white-space:pre-wrap;\">{html.escape(body)}</pre></body></html>"
+
+    full_plain = plain_body + _disclaimer_text(scenario_name, category, severity, version)
+    full_html = html_body + _disclaimer_html(scenario_name, category, severity, version)
+
+    msg.attach(MIMEText(full_plain, "plain", "utf-8"))
+    msg.attach(MIMEText(full_html, "html", "utf-8"))
     return msg.as_string()
 
 def _explain_smtp_error(exc: Exception) -> str:
@@ -95,38 +130,48 @@ def send_email(
     smtp_user: str = "",
     smtp_pass: str = "",
     use_tls: bool = False,
-) -> bool:
+    verbose: bool = False,
+) -> tuple[bool, str]:
     try:
+        if verbose:
+            print(f"[SMTP] connect {smtp_host}:{smtp_port} tls={'yes' if use_tls else 'no'}")
         if use_tls or smtp_port == 465:
             server = smtplib.SMTP_SSL(smtp_host, smtp_port, timeout=timeout)
         else:
             server = smtplib.SMTP(smtp_host, smtp_port, timeout=timeout)
 
         with server:
+            if verbose:
+                print("[SMTP] connected")
             if not (use_tls or smtp_port == 465):
                 try:
                     server.starttls()
-                except Exception:
-                    pass
-
+                    if verbose:
+                        print("[SMTP] starttls ok")
+                except Exception as exc:
+                    if verbose:
+                        print(f"[SMTP] starttls failed: {exc}")
             if smtp_user and smtp_pass:
+                if verbose:
+                    print(f"[SMTP] login as {smtp_user}")
                 server.login(smtp_user, smtp_pass)
-
+            if verbose:
+                print("[SMTP] sending...")
             server.sendmail(from_email, [to_email], content.encode("utf-8"))
-        return True
+        return True, ""
     except smtplib.SMTPAuthenticationError as exc:
         print(f"\n{R}[!] SMTP Authentication failed: {exc}{D}")
         print(f"    {Y}Check your username/password. For Gmail, use an App Password.{D}")
-        return False
+        return False, str(exc)
     except smtplib.SMTPRecipientsRefused as exc:
         print(f"\n{R}[!] Recipient refused: {exc}{D}")
-        return False
+        return False, str(exc)
     except smtplib.SMTPException as exc:
         print(f"\n{_explain_smtp_error(exc)}")
-        return False
+        return False, str(exc)
     except Exception as exc:
         print(f"\n{_explain_smtp_error(exc)}")
-        return False
+        return False, str(exc)
 
 def run_scenario(
     scenario: Scenario,
@@ -137,6 +182,7 @@ def run_scenario(
     smtp_user: str = "",
     smtp_pass: str = "",
     use_tls: bool = False,
+    verbose: bool = False,
 ) -> bool:
     print(f"\n[TARGET]  {target}")
     print(f"[FROM]    {scenario.from_name} <{scenario.from_email}>")
@@ -152,14 +198,15 @@ def run_scenario(
         scenario_name=scenario.name,
         category=scenario.category,
         severity=scenario.severity,
-        version=config.data.get("version", "1.0.0"),
+        version=config.data.get("version", "1.1.0"),
     )
 
     print("[STATUS]  Connecting...", end=" ")
-    ok = send_email(
+    ok, err = send_email(
         scenario.from_email, target, content,
         smtp_host, smtp_port,
         smtp_user=smtp_user, smtp_pass=smtp_pass, use_tls=use_tls,
+        verbose=verbose,
     )
 
     if ok:
@@ -185,6 +232,7 @@ def run_scenario(
             "category": scenario.category,
             "severity": scenario.severity,
             "smtp_server": f"{smtp_host}:{smtp_port}",
+            "error": err if not ok else "",
         },
     )
     _append_log(result, config)
@@ -202,6 +250,7 @@ def run_custom(
     smtp_user: str = "",
     smtp_pass: str = "",
     use_tls: bool = False,
+    verbose: bool = False,
 ) -> bool:
     print(f"\n[TARGET]  {target}")
     print(f"[FROM]    {from_name} <{from_email}>")
@@ -214,14 +263,15 @@ def run_custom(
         subject=subject,
         body=body,
         target=target,
-        version=config.data.get("version", "1.0.0"),
+        version=config.data.get("version", "1.1.0"),
     )
 
     print("[STATUS]  Connecting...", end=" ")
-    ok = send_email(
+    ok, err = send_email(
         from_email, target, content,
         smtp_host, smtp_port,
         smtp_user=smtp_user, smtp_pass=smtp_pass, use_tls=use_tls,
+        verbose=verbose,
     )
 
     if ok:
@@ -249,6 +299,7 @@ def run_custom(
             "subject": subject,
             "body_length": len(body),
             "smtp_server": f"{smtp_host}:{smtp_port}",
+            "error": err if not ok else "",
         },
     )
     _append_log(result, config)

@@ -1,0 +1,34 @@
+Name: Discord Trust & Safety Notice
+Category: Social Media Phishing
+Severity: Medium
+From Email: noreply@discord.com
+From Name: Discord Trust & Safety
+Subject: Immediate Verification: Server Compliance Review
+Body:
+<html>
+  <body style="font-family:'Helvetica Neue', Arial, sans-serif; color:#0f172a;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; margin:0 auto;">
+      <tr>
+        <td style="padding:12px 0; text-align:center;">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/9/98/Discord_logo.svg" alt="Discord" style="height:32px;" />
+        </td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #e5e7eb; padding:16px; border-radius:8px; font-size:14px; line-height:1.6; background:#f8fafc;">
+          <p><strong>Your server is under compliance review.</strong></p>
+          <ul style="padding-left:18px;">
+            <li>Server: Target Company</li>
+            <li>Flag: Trust & Safety policy</li>
+            <li>Action needed by: {TODAY}</li>
+          </ul>
+          <p>Verify ownership to avoid temporary server restrictions.</p>
+          <p>
+            <a href="https://discord-trust.example.net/verify" style="background:#5865f2; color:#fff; padding:12px 16px; text-decoration:none; border-radius:4px;">Verify Server</a>
+          </p>
+          <p style="color:#6b7280; font-size:12px;">Failure to verify may limit invites and roles.</p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+Description: Discord impersonation pressing server verification to capture credentials.

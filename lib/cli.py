@@ -3,12 +3,13 @@ from __future__ import annotations
 import argparse
 import os
 import sys
+from pathlib import Path
 
 import threading
 import time
 
-from lib.core import Config, TEMPLATES_DIR, __version__, __author__, __license__
-from lib.engine import run_custom, run_scenario
+from lib.core import Config, TEMPLATES_DIR, __version__, __author__, __license__, load_user_templates, load_builtin_templates
+from lib.engine import _strip_html, run_custom, run_scenario
 from lib.audit import show_logs, generate_report
 from lib.server import SMTPServer
 from lib.banner import print_banner, print_server_banner, clear_screen, print_legal, G, R, Y, C, B, D
@@ -48,20 +49,26 @@ def _build_parser() -> argparse.ArgumentParser:
   mailspoof list
   mailspoof test 1 target@company.com
   mailspoof create
-  mailspoof custom --from-email "ceo@company.com" --from-name "CEO" \\
+  mailspoof custom --from-email "ceo@company.com" --from-name "CEO" \
                    --subject "Urgent" --body "Handle this" --target "user@company.com"
   mailspoof logs --lines 50
   mailspoof report --output /path/to/report.json
-""")
+""",
+    )
+
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version=f"MailSpoof v{__version__}",
+    )
 
     subparsers = parser.add_subparsers(dest="command")
-
 
     p_server = subparsers.add_parser("server", help="Start SMTP server only")
     p_server.add_argument("--host", default="0.0.0.0")
     p_server.add_argument("--port", type=int, default=2525)
 
-    
     p_start = subparsers.add_parser("start", help="Start server + interactive session")
     p_start.add_argument("--host", default="0.0.0.0")
     p_start.add_argument("--port", type=int, default=2525)
@@ -70,11 +77,12 @@ def _build_parser() -> argparse.ArgumentParser:
     p_start.add_argument("--smtp-user", default="")
     p_start.add_argument("--smtp-pass", default="")
     p_start.add_argument("--use-tls", action="store_true")
+    p_start.add_argument("--profile", default="", help="Use named SMTP profile")
+    p_start.add_argument("--verbose", action="store_true", help="Show detailed send stages")
     p_start.add_argument("-s", "--server-only", action="store_true")
 
-
-    subparsers.add_parser("list", help="List all templates")
-
+    p_list = subparsers.add_parser("list", help="List all templates")
+    p_list.add_argument("--filter", default="", help="Filter by text or tag")
 
     p_test = subparsers.add_parser("test", help="Run a built-in scenario by ID")
     p_test.add_argument("id", type=int)
@@ -84,8 +92,10 @@ def _build_parser() -> argparse.ArgumentParser:
     p_test.add_argument("--smtp-user", default="")
     p_test.add_argument("--smtp-pass", default="")
     p_test.add_argument("--use-tls", action="store_true")
+    p_test.add_argument("--profile", default="", help="Use named SMTP profile")
+    p_test.add_argument("--verbose", action="store_true", help="Show detailed send stages")
     subparsers.add_parser("create", help="Create a custom template")
-    subparsers.add_parser("-t", help="Alias for create")  
+    subparsers.add_parser("-t", help="Alias for create")
     p_custom = subparsers.add_parser("custom", help="Run a fully custom spoofing test")
     p_custom.add_argument("--from-email", required=True)
     p_custom.add_argument("--from-name", required=True)
@@ -97,13 +107,35 @@ def _build_parser() -> argparse.ArgumentParser:
     p_custom.add_argument("--smtp-user", default="")
     p_custom.add_argument("--smtp-pass", default="")
     p_custom.add_argument("--use-tls", action="store_true")
+    p_custom.add_argument("--profile", default="", help="Use named SMTP profile")
+    p_custom.add_argument("--verbose", action="store_true", help="Show detailed send stages")
     p_logs = subparsers.add_parser("logs", help="View test logs")
     p_logs.add_argument("--lines", type=int, default=20)
     p_report = subparsers.add_parser("report", help="Generate assessment report")
     p_report.add_argument("--output", default=None)
+    p_report.add_argument("--format", choices=["json", "csv"], default="json")
     subparsers.add_parser("update", help="Update MailSpoof from Git repo")
     subparsers.add_parser("uninstall", help="Remove MailSpoof from system")
     subparsers.add_parser("help", help="Show this help page")
+
+    p_preview = subparsers.add_parser("preview", help="Preview a template by ID")
+    p_preview.add_argument("id", type=int)
+    p_preview.add_argument("--raw", action="store_true", help="Show raw body without stripping HTML")
+
+    p_remove_tpl = subparsers.add_parser("remove-template", help="Remove a custom template by ID")
+    p_remove_tpl.add_argument("id", type=int, help="Template ID to remove")
+
+    p_edit_tpl = subparsers.add_parser("edit-template", help="Edit a custom template by ID using nano")
+    p_edit_tpl.add_argument("id", type=int, help="Template ID to edit")
+
+    p_profile = subparsers.add_parser("profile", help="Manage SMTP profiles")
+    p_profile.add_argument("action", choices=["list", "add", "remove"], help="Profile action")
+    p_profile.add_argument("name", nargs="?", help="Profile name")
+    p_profile.add_argument("--host", help="SMTP host")
+    p_profile.add_argument("--port", type=int, help="SMTP port")
+    p_profile.add_argument("--user", help="SMTP username")
+    p_profile.add_argument("--pass", dest="password", help="SMTP password")
+    p_profile.add_argument("--use-tls", action="store_true", help="Use TLS")
 
     return parser
 
@@ -118,21 +150,25 @@ def _cmd_test(args, config: Config):
         print(f"{R}[!] Invalid scenario ID: {args.id}{D}")
         print(f"    Run 'mailspoof list' to see available IDs.")
         sys.exit(1)
+    smtp_host, smtp_port, smtp_user, smtp_pass, use_tls = _resolve_smtp(args, config)
     ok = run_scenario(
-        scenario, args.target, args.smtp_host, args.smtp_port, config,
-        smtp_user=getattr(args, "smtp_user", ""),
-        smtp_pass=getattr(args, "smtp_pass", ""),
-        use_tls=getattr(args, "use_tls", False),
+        scenario, args.target, smtp_host, smtp_port, config,
+        smtp_user=smtp_user,
+        smtp_pass=smtp_pass,
+        use_tls=use_tls,
+        verbose=getattr(args, "verbose", False),
     )
     sys.exit(0 if ok else 1)
 
 def _cmd_custom(args, config: Config):
+    smtp_host, smtp_port, smtp_user, smtp_pass, use_tls = _resolve_smtp(args, config)
     ok = run_custom(
         args.from_email, args.from_name, args.subject, args.body,
-        args.target, args.smtp_host, args.smtp_port, config,
-        smtp_user=getattr(args, "smtp_user", ""),
-        smtp_pass=getattr(args, "smtp_pass", ""),
-        use_tls=getattr(args, "use_tls", False),
+        args.target, smtp_host, smtp_port, config,
+        smtp_user=smtp_user,
+        smtp_pass=smtp_pass,
+        use_tls=use_tls,
+        verbose=getattr(args, "verbose", False),
     )
     sys.exit(0 if ok else 1)
 
@@ -168,7 +204,12 @@ def _cmd_start(args, config: Config):
 
     defaults = config.scenario_by_id(1)
     if not defaults:
-        defaults = config.scenarios()[0]
+        all_scenarios = config.scenarios()
+        if not all_scenarios:
+            print(f"{R}[!] No templates found. Built-in templates may be missing from the installation.{D}")
+            print(f"    Reinstall or copy templates to ~/.mailspoof/templates")
+            sys.exit(1)
+        defaults = all_scenarios[0]
 
     print(f"\n{C}--- Interactive Spoofing Session ---{D}\n")
 
@@ -264,9 +305,11 @@ def _cmd_start(args, config: Config):
         source=scenario.source,
     )
 
+    smtp_host, smtp_port, smtp_user, smtp_pass, use_tls = _resolve_smtp(args, config, smtp_user, smtp_pass, use_tls)
     ok = run_scenario(
-        active, target, args.smtp_host, args.smtp_port, config,
+        active, target, smtp_host, smtp_port, config,
         smtp_user=smtp_user, smtp_pass=smtp_pass, use_tls=use_tls,
+        verbose=getattr(args, "verbose", False),
     )
     if ok:
         print(f"\n{G}[+] Email sent successfully.{D}")
@@ -307,87 +350,185 @@ def _cmd_create(args, config: Config):
         print(f"{R}[!] Body cannot be empty.{D}")
         sys.exit(1)
 
-    content = f"""Name: {name}
-Category: {category}
-Severity: {severity}
-From Email: {from_email}
-From Name: {from_name}
-Subject: {subject}
-Body:
-{body}
-Description: {description}
-"""
+    next_id = max([s.id for s in config.scenarios()] or [0]) + 1
 
-    out_path = TEMPLATES_DIR / f"{name.replace(' ', '_').lower()}.txt"
+    custom_dir = TEMPLATES_DIR / "custom"
+    custom_dir.mkdir(parents=True, exist_ok=True)
+    out_path = custom_dir / f"{name.replace(' ', '_').lower()}.txt"
     out_path.write_text(content, encoding="utf-8")
-    print(f"{G}[+] Template saved: {out_path}{D}")
+    print(f"{G}[+] Template saved: {out_path}  (ID {next_id}){D}")
 
-def _cmd_list(config: Config):
+    config._custom_templates = load_user_templates(start_id=len(config._builtin_templates) + 1)
+
+def _cmd_list(args, config: Config):
+    filter_text = getattr(args, "filter", "").lower().strip()
     scenarios = config.scenarios()
     print(f"\n{C}--- Available Templates ---{D}\n")
     for s in scenarios:
+        if filter_text:
+            hay = " ".join([
+                s.name, s.category, s.severity, s.subject, s.description,
+                " ".join(getattr(s, "tags", []) or []), s.body[:200],
+            ]).lower()
+            if filter_text not in hay:
+                continue
         sev_color = R if s.severity == "Critical" else Y if s.severity == "High" else G
-        print(f"  [{s.id:2d}] {s.name:40s}  [{sev_color}{s.severity}{D}]")
+        tags_text = f" ({','.join(s.tags)})" if getattr(s, "tags", []) else ""
+        print(f"  [{s.id:2d}] {s.name:40s}  [{sev_color}{s.severity}{D}] {tags_text}")
     custom_count = sum(1 for s in scenarios if s.source == "custom")
     print(f"\n  [+] Custom templates: {custom_count} found in ~/.mailspoof/templates/")
+    print()
+
+def _resolve_smtp(args, config: Config, smtp_user: str = "", smtp_pass: str = "", use_tls: bool = False):
+    host = getattr(args, "smtp_host", "localhost")
+    port = getattr(args, "smtp_port", 2525)
+
+    profile_name = getattr(args, "profile", "") or ""
+    profiles = config.data.get("smtp_profiles", {})
+    if profile_name:
+        profile = profiles.get(profile_name)
+        if not profile:
+            print(f"{R}[!] SMTP profile '{profile_name}' not found.{D}")
+            sys.exit(1)
+        host = profile.get("host", host)
+        port = int(profile.get("port", port))
+        smtp_user = profile.get("user", smtp_user)
+        smtp_pass = profile.get("pass", smtp_pass)
+        use_tls = bool(profile.get("use_tls", use_tls))
+
+    if getattr(args, "use_tls", False):
+        use_tls = True
+
+    if getattr(args, "smtp_user", None):
+        smtp_user = args.smtp_user
+    if getattr(args, "smtp_pass", None):
+        smtp_pass = args.smtp_pass
+
+    return host, port, smtp_user, smtp_pass, use_tls
+
+def _cmd_profile(args, config: Config):
+    action = args.action
+    profiles = config.data.get("smtp_profiles", {})
+
+    if action == "list":
+        if not profiles:
+            print("No SMTP profiles found.")
+            return
+        print("\nProfiles:\n")
+        for name, p in profiles.items():
+            tls = "yes" if p.get("use_tls") else "no"
+            user = p.get("user", "")
+            print(f"  - {name}: {p.get('host','?')}:{p.get('port','?')} tls={tls} user={user}")
+        return
+
+    if not args.name:
+        print(f"{R}[!] Profile name required.{D}")
+        sys.exit(1)
+
+    if action == "remove":
+        if args.name in profiles:
+            profiles.pop(args.name, None)
+            config.data["smtp_profiles"] = profiles
+            config._save(config.data)
+            print(f"Removed profile '{args.name}'.")
+        else:
+            print(f"Profile '{args.name}' not found.")
+        return
+
+    if action == "add":
+        if not args.host or not args.port:
+            print(f"{R}[!] --host and --port are required to add a profile.{D}")
+            sys.exit(1)
+        profiles[args.name] = {
+            "host": args.host,
+            "port": args.port,
+            "user": args.user or "",
+            "pass": args.password or "",
+            "use_tls": bool(args.use_tls),
+        }
+        config.data["smtp_profiles"] = profiles
+        config._save(config.data)
+        print(f"Saved profile '{args.name}'.")
+
+def _cmd_remove_template(args, config: Config):
+    tpl_id = args.id
+    scenarios = config.scenarios()
+    match = None
+    for s in scenarios:
+        if s.id == tpl_id:
+            match = s
+            break
+    if not match:
+        print(f"{R}[!] Template ID {tpl_id} not found.{D}")
+        sys.exit(1)
+    if match.source != "custom":
+        print(f"{R}[!] Cannot remove built-in templates (ID {tpl_id}).{D}")
+        sys.exit(1)
+
+    filename = f"{match.name.replace(' ', '_').lower()}.txt"
+    custom_dir = TEMPLATES_DIR / "custom"
+    candidates = [custom_dir / filename, TEMPLATES_DIR / filename]
+    removed = False
+    for path in candidates:
+        if path.exists():
+            path.unlink()
+            removed = True
+
+    config._custom_templates = load_user_templates(start_id=len(config._builtin_templates) + 1)
+
+    if removed:
+        print(f"{G}[+] Removed custom template ID {tpl_id}: {match.name}{D}")
+    else:
+        print(f"{Y}[~]{D} Custom template file not found on disk; index refreshed.")
+
+def _cmd_edit_template(args, config: Config):
+    tpl_id = args.id
+    scenarios = config.scenarios()
+    match = None
+    for s in scenarios:
+        if s.id == tpl_id:
+            match = s
+            break
+    if not match:
+        print(f"{R}[!] Template ID {tpl_id} not found.{D}")
+        sys.exit(1)
+    if match.source == "custom":
+        filename = f"{match.name.replace(' ', '_').lower()}.txt"
+        custom_dir = TEMPLATES_DIR / "custom"
+        path = custom_dir / filename
+    else:
+        path_str = getattr(match, "disk_path", "")
+        if not path_str:
+            print(f"{R}[!] Built-in template path unknown.{D}")
+            sys.exit(1)
+        path = Path(path_str)
+
+    if not path.exists():
+        print(f"{R}[!] Template file not found on disk: {path}{D}")
+        sys.exit(1)
+
+    editor = os.environ.get("EDITOR", "nano")
+    os.system(f"{editor} '{path}'")
+
+    config._builtin_templates = load_builtin_templates()
+    config._custom_templates = load_user_templates(start_id=len(config._builtin_templates) + 1)
+    print(f"{G}[+] Reloaded templates after edit.{D}")
+
+def _cmd_preview(args, config: Config):
+    scenario = config.scenario_by_id(args.id)
+    if not scenario:
+        print(f"{R}[!] Invalid scenario ID: {args.id}{D}")
+        sys.exit(1)
+    print(f"\n{C}--- Preview: {scenario.name} (ID {scenario.id}) ---{D}\n")
+    if scenario.body.strip().startswith("<html") and not args.raw:
+        print(_strip_html(scenario.body))
+    else:
+        print(scenario.body)
     print()
 
 def _cmd_help():
     clear_screen()
     print_banner()
-    print(f"""
-{C}--- Commands Help ---{D}
-
-  {G}mailspoof{D}                Start interactive spoofing session (default)
-                           Same as: mailspoof start
-
-  {G}mailspoof start{D}          Start server + interactive spoofing session
-                           Options: --host, --port, --smtp-host, --smtp-port
-                           --server-only  (-s)  Start server only
-
-  {G}mailspoof list{D}           List all built-in and custom templates
-
-  {G}mailspoof create{D}         Create a custom template interactively
-  {G}mailspoof -t{D}             Alias for 'create'
-
-  {G}mailspoof test <id> <email>{D}
-                           Run a built-in scenario by ID
-
-  {G}mailspoof custom{D}         Run a fully custom spoofing test
-                           Required: --from-email, --from-name, --subject,
-                                     --body, --target
-
-  {G}mailspoof logs{D}           View test logs
-                           Option: --lines N
-
-  {G}mailspoof report{D}        Generate assessment report
-                           Option: --output <path>
-
-  {G}mailspoof server{D}         Start SMTP server only
-                           Options: --host, --port
-
-  {G}mailspoof update{D}         Update MailSpoof from Git repo
-
-  {G}mailspoof uninstall{D}      Remove MailSpoof from system
-
-  {G}mailspoof help{D}           Show this help page
-  {G}mailspoof -h{D}             Show this help page
-  {G}mailspoof --version{D}      Show version
-  {G}mailspoof -v{D}             Show version
-
-{C}--- Shorthand Mapping ---{D}
-
-  No args     →  Interactive start (server + send)
-  start       →  Interactive start
-  start -s    →  Server only
-  list        →  List templates
-  create / -t →  Create template
-  logs        →  View logs
-  report      →  Generate report
-  server      →  Server only
-  update      →  Update from Git repo
-  uninstall   →  Remove MailSpoof
-""")
 
 def _cmd_update():
     import subprocess
@@ -444,29 +585,90 @@ def _cmd_update():
 
 def _cmd_uninstall():
     import subprocess
+    import shutil
+
     clear_screen()
     print_banner()
     print(f"\n{C}--- Uninstall MailSpoof ---{D}\n")
 
-    script_path = os.path.abspath(__file__)
-    project_dir = os.path.dirname(os.path.dirname(script_path))
-    uninstall_script = os.path.join(project_dir, "uninstall.py")
+    print(f"{Y}[~]{D} Using built-in uninstaller...")
 
-    if not os.path.isfile(uninstall_script):
-        print(f"{R}[!] uninstall.py not found.{D}")
-        print(f"    Expected: {uninstall_script}")
-        print(f"\n{Y}[~] Manual uninstall:{D}")
-        print(f"    rm -f ~/.local/bin/mailspoof")
-        print(f"    sudo rm -f /usr/local/bin/mailspoof")
-        print(f"    sudo rm -f /usr/bin/mailspoof")
-        print(f"    sudo rm -rf /usr/share/mailspoof")
-        print(f"    rm -rf ~/.mailspoof")
-        sys.exit(1)
+    def ask_yes_no(prompt: str, default: str = "n") -> bool:
+        while True:
+            try:
+                ans = input(f"{prompt} [Y/n] (default: {default}): ").strip() or default
+            except (EOFError, KeyboardInterrupt):
+                return False
+            low = ans.lower()
+            if low in ("y", "yes"):
+                return True
+            if low in ("n", "no"):
+                return False
+            print("    Please answer yes or no.")
+
+    def _sudo_rm(path: str, is_dir: bool = False) -> bool:
+        try:
+            cmd = ["sudo", "rm", "-rf" if is_dir else "-f", path]
+            subprocess.run(cmd, check=True)
+            print(f"{G}[+]{D} Removed {path} (with sudo)")
+            return True
+        except subprocess.CalledProcessError:
+            print(f"{R}[!]{D} Failed to remove {path} even with sudo")
+            return False
+
+    def remove_file(path: str) -> bool:
+        try:
+            os.remove(path)
+            print(f"{G}[+]{D} Removed {path}")
+            return True
+        except PermissionError:
+            print(f"{Y}[*]{D} Permission denied: {path}")
+            return _sudo_rm(path, is_dir=False)
+        except FileNotFoundError:
+            return True
+
+    def remove_dir(path: str) -> bool:
+        try:
+            shutil.rmtree(path)
+            print(f"{G}[+]{D} Removed {path}")
+            return True
+        except PermissionError:
+            print(f"{Y}[*]{D} Permission denied: {path}")
+            return _sudo_rm(path, is_dir=True)
+        except FileNotFoundError:
+            return True
+
+    wrappers = [
+        os.path.expanduser("~/.local/bin/mailspoof"),
+        "/usr/local/bin/mailspoof",
+        "/usr/bin/mailspoof",
+    ]
+    config_dir = os.path.expanduser("~/.mailspoof")
+    sys_share = "/usr/share/mailspoof"
+    pkg_templates = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "lib", "templates")
+
+    print(f"{Y}[*]{D} The following will be removed if present:")
+    for path in wrappers + [config_dir, sys_share, pkg_templates]:
+        print(f"    - {path}")
+    print("    - pip package: mailspoof (if installed)")
+
+    if not ask_yes_no("Proceed with uninstall?", "n"):
+        print(f"{Y}[~]{D} Uninstall cancelled.")
+        sys.exit(0)
+
+    for wrapper in wrappers:
+        remove_file(wrapper)
+
+    remove_dir(config_dir)
+    remove_dir(sys_share)
+    remove_dir(pkg_templates)
 
     try:
-        subprocess.run([sys.executable, uninstall_script])
-    except KeyboardInterrupt:
-        pass
+        subprocess.run([sys.executable, "-m", "pip", "uninstall", "-y", "mailspoof"], check=False)
+    except Exception:
+        print(f"{Y}[~]{D} Could not auto-run pip uninstall; please run 'pip uninstall mailspoof' manually if needed.")
+
+    print(f"\n{G}[+]{D} MailSpoof removal complete. Some files may require sudo; verify above output.")
     sys.exit(0)
 
 def main():
@@ -510,7 +712,7 @@ def main():
     elif args.command == "start":
         _cmd_start(args, config)
     elif args.command == "list":
-        _cmd_list(config)
+        _cmd_list(args, config)
     elif args.command == "test":
         _cmd_test(args, config)
     elif args.command == "create":
@@ -520,10 +722,32 @@ def main():
     elif args.command == "logs":
         show_logs(config, args.lines)
     elif args.command == "report":
-        generate_report(config, args.output)
+        generate_report(config, args.output, args.format)
+    elif args.command == "preview":
+        _cmd_preview(args, config)
+    elif args.command == "remove-template":
+        _cmd_remove_template(args, config)
+    elif args.command == "edit-template":
+        _cmd_edit_template(args, config)
+    elif args.command == "profile":
+        _cmd_profile(args, config)
     elif args.command == "help":
         _cmd_help()
     elif args.command == "update":
         _cmd_update()
     elif args.command == "uninstall":
         _cmd_uninstall()
+
+
+def main():
+    config = Config()
+    parser = _build_parser()
+    args = parser.parse_args()
+    if not args.command:
+        _cmd_help()
+        sys.exit(0)
+    _dispatch(args, config)
+
+
+if __name__ == "__main__":
+    main()

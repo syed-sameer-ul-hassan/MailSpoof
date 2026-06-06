@@ -14,7 +14,7 @@ flowchart TD
     B -->|PKGBUILD| E[Arch / Manjaro]
     B -->|Generic| F[Makefile / install.sh]
     B -->|Manual| G[venv + pip]
-    C --> C1[sudo dpkg -i mailspoof-v1.0.0.deb]
+    C --> C1[sudo dpkg -i mailspoof-v1.1.0.deb]
     D --> D1[rpmbuild -ba mailspoof.spec]
     E --> E1[makepkg -si]
     F --> F1[bash install.sh]
@@ -36,7 +36,7 @@ Supported: Debian, Ubuntu, Fedora, RHEL, CentOS, Rocky, AlmaLinux, Arch, Manjaro
 ## Method 2: Debian / Ubuntu (.deb)
 
 ```bash
-sudo dpkg -i mailspoof-v1.0.0.deb
+sudo dpkg -i mailspoof-v1.1.0.deb
 sudo apt-get install -f
 ```
 
@@ -104,6 +104,53 @@ Optional: `dnspython` for MX record lookups.
 | 2525 | Built-in SMTP server | Any |
 | 587 | External SMTP relay (STARTTLS) | Any |
 | 465 | External SMTP relay (SSL) | Any |
+
+## Post-Install: Desktop Launcher
+
+The `install.sh` script automatically installs:
+- `mailspoof.desktop` to the application menu
+- `assets/icon.svg` as the application icon
+
+If the icon does not appear immediately:
+
+```bash
+update-desktop-database ~/.local/share/applications  # user install
+# or
+sudo update-desktop-database /usr/share/applications   # system install
+```
+
+## Post-Install: SMTP Profiles
+
+Set up saved relay profiles for faster testing:
+
+```bash
+mailspoof profile add gmail --host smtp.gmail.com --port 587 --user your.email@gmail.com --pass APP_PASSWORD --use-tls
+mailspoof profile add outlook --host smtp.office365.com --port 587 --user your.email@outlook.com --pass PASSWORD --use-tls
+```
+
+Use profiles in any command:
+
+```bash
+mailspoof test 1 target@company.com --profile gmail --verbose
+mailspoof start --profile gmail
+mailspoof custom --from-email ... --target ... --profile outlook
+```
+
+## Post-Install: Custom Templates
+
+Create persistent custom templates:
+
+```bash
+mailspoof create        # Interactive creation (auto-assigns ID)
+mailspoof list          # Verify new template appears
+mailspoof preview <id>  # Preview before using
+```
+
+Custom templates are stored in:
+
+```
+~/.mailspoof/templates/custom/
+```
 
 ## Uninstall
 

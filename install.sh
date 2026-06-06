@@ -17,8 +17,6 @@ else
     SCRIPT_DIR="$CLONE_DIR"
 fi
 
-VENV_DIR="$SCRIPT_DIR/venv"
-
 PLATFORM="linux"
 DISTRO="unknown"
 INSTALL_DIR="/usr/local/bin"
@@ -43,6 +41,36 @@ detect_platform() {
     fi
 }
 
+install_shortcut() {
+    local scope="$1"
+    local icon_src="$SCRIPT_DIR/assets/icon.svg"
+    local desktop_src="$SCRIPT_DIR/mailspoof.desktop"
+
+    if [[ ! -f "$icon_src" ]] || [[ ! -f "$desktop_src" ]]; then
+        echo "[~] Skipping launcher install (icon or desktop file missing)."
+        return
+    }
+
+    if [[ "$scope" == "system" ]]; then
+        local icon_dest="/usr/share/icons/hicolor/scalable/apps/mailspoof.svg"
+        local desktop_dest="/usr/share/applications/mailspoof.desktop"
+        echo "[+] Installing launcher (system)..."
+        if [[ $(id -u) -eq 0 ]]; then
+            install -Dm644 "$icon_src" "$icon_dest"
+            install -Dm644 "$desktop_src" "$desktop_dest"
+        else
+            sudo install -Dm644 "$icon_src" "$icon_dest"
+            sudo install -Dm644 "$desktop_src" "$desktop_dest"
+        fi
+    else
+        local icon_dest="$HOME/.local/share/icons/hicolor/scalable/apps/mailspoof.svg"
+        local desktop_dest="$HOME/.local/share/applications/mailspoof.desktop"
+        echo "[+] Installing launcher (user)..."
+        install -Dm644 "$icon_src" "$icon_dest"
+        install -Dm644 "$desktop_src" "$desktop_dest"
+    fi
+}
+
 _SED_INPLACE="sed -i"
 if [[ "$PLATFORM" == "macos" ]]; then
     _SED_INPLACE="sed -i ''"
@@ -60,7 +88,7 @@ print_banner() {
     echo " ▀█  ██  █▀   ██   █▀  █▀ ███▄ ▄███████▀  ▄███▀    ▀█████▀   ▀█████▀   ███"
     echo "                                  ."
     echo ""
-    echo "      Professional Email Security Assessment v1.0.0"
+    echo "      Professional Email Security Assessment v1.1.0"
     echo "      Platform: $PLATFORM"
     [[ "$PLATFORM" == "linux" ]] && echo "      Distro:   $DISTRO"
     echo ""
@@ -155,68 +183,32 @@ check_python() {
 }
 
 install_deps() {
-    echo "[+] Creating virtual environment..."
-    "$PYTHON" -m venv "$VENV_DIR"
-
-    echo "[+] Installing dependencies..."
-    "$VENV_DIR/bin/pip" install --upgrade pip &>/dev/null
-    "$VENV_DIR/bin/pip" install -r "$SCRIPT_DIR/requirements.txt"
-}
-
-create_wrapper() {
-    local target="$1"
-    cat > "$target" <<'WRAPPER'
-#!/usr/bin/env bash
-
-if [[ -L "$0" ]]; then
-    if command -v readlink &>/dev/null; then
-        SCRIPT_PATH="$(readlink "$0" 2>/dev/null || echo "$0")"
+    echo "[+] Installing MailSpoof via pip..."
+    local scope="$1"
+    if [[ "$scope" == "system" ]]; then
+        if [[ $(id -u) -eq 0 ]]; then
+            (cd "$SCRIPT_DIR" && "$PYTHON" -m pip install --upgrade pip && "$PYTHON" -m pip install .)
+        else
+            (cd "$SCRIPT_DIR" && sudo "$PYTHON" -m pip install --upgrade pip && sudo "$PYTHON" -m pip install .)
+        fi
     else
-        SCRIPT_PATH="$0"
+        (cd "$SCRIPT_DIR" && "$PYTHON" -m pip install --upgrade pip && "$PYTHON" -m pip install --user .)
     fi
-else
-    SCRIPT_PATH="$0"
-fi
-
-PROJECT_DIR="SCRIPT_DIR_PLACEHOLDER"
-VENV_PYTHON="$PROJECT_DIR/venv/bin/python3"
-
-if [[ ! -f "$VENV_PYTHON" ]]; then
-    VENV_PYTHON="python3"
-fi
-
-exec "$VENV_PYTHON" "$PROJECT_DIR/mailspoof" "$@"
-WRAPPER
-
-    $_SED_INPLACE "s|SCRIPT_DIR_PLACEHOLDER|$SCRIPT_DIR|g" "$target"
-    chmod +x "$target"
 }
 
 install_system_wide() {
-    local target="$INSTALL_DIR/mailspoof"
-    echo "[+] Installing system-wide to $target ..."
-    if [[ "$PLATFORM" == "termux" ]]; then
-        mkdir -p "$INSTALL_DIR"
-        create_wrapper "$target"
-    elif [[ -w "$INSTALL_DIR" ]]; then
-        create_wrapper "$target"
-    else
-        echo "    Need sudo for system-wide install..."
-        sudo bash -c "$(declare -f create_wrapper); create_wrapper '$target'"
-        sudo $_SED_INPLACE "s|SCRIPT_DIR_PLACEHOLDER|$SCRIPT_DIR|g" "$target"
-        sudo chmod +x "$target"
-    fi
-    echo "[+] Installed: $target"
+    echo "[+] Installing system-wide via pip..."
+    install_deps "system"
+    install_shortcut "system"
+    echo "[+] Installed system-wide"
 }
 
 install_user_local() {
-    local target="$USER_INSTALL_DIR/mailspoof"
     mkdir -p "$USER_INSTALL_DIR"
-    echo "[+] Installing to user bin: $target ..."
-    create_wrapper "$target"
-    $_SED_INPLACE "s|SCRIPT_DIR_PLACEHOLDER|$SCRIPT_DIR|g" "$target"
-    chmod +x "$target"
-    echo "[+] Installed: $target"
+    echo "[+] Installing to user site-packages and bin (~/.local/bin)..."
+    install_deps "user"
+    install_shortcut "user"
+    echo "[+] Installed to user environment"
 
     if [[ ":$PATH:" != *":$USER_INSTALL_DIR:"* ]]; then
         echo ""
@@ -238,7 +230,6 @@ main() {
     print_banner
     install_system_packages
     check_python
-    install_deps
     setup_dirs
 
     echo ""

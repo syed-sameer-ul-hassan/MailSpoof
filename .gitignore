@@ -1,10 +1,9 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
 *.so
-
 .Python
+
 build/
 develop-eggs/
 dist/
@@ -20,16 +19,12 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
-
 *.manifest
-
-pip-log.txt
-pip-delete-this-directory.txt
 
 venv/
 ENV/
 env/
-.venv
+.venv/
 
 .vscode/
 .idea/
@@ -41,12 +36,13 @@ env/
 Thumbs.db
 
 *.deb
+*.rpm
+*.pkg.tar.zst
 DEBIAN/
+
+.mailspoof/
 audit.log
 reports/
-templates/*.txt
-!templates/builtins/
-!templates/builtins/*.txt
 
 .env
 .env.local
@@ -64,5 +60,6 @@ node_modules/
 *.bak
 *.tmp
 *.temp
+
 release.sh
 RELEASE_NOTES.md

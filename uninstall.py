@@ -16,18 +16,6 @@ Y = "\033[93m"
 D = "\033[0m"
 
 def print_banner():
-    print("""
-▗▄▄▄▖▗▖             ▗▖   ▄▖ ▗▄
-▝▀█▀▘▐▌             ▐▌   ▐▙ ▟▌
-  █  ▐▙██▖ ▟██▖▐▙██▖▐▌▟▛  █▄█  ▟█▙ ▐▌ ▐▌
-  █  ▐▛ ▐▌ ▘▄▟▌▐▛ ▐▌▐▙█   ▝█▘ ▐▛ ▜▌▐▌ ▐▌
-  █  ▐▌ ▐▌▗█▀▜▌▐▌ ▐▌▐▛█▖   █  ▐▌ ▐▌▐▌ ▐▌
-  █  ▐▌ ▐▌▐▙▄█▌▐▌ ▐▌▐▌▝▙   █  ▝█▄█▘▐▙▄█▌
-  ▀  ▝▘ ▝▘ ▀▀▝▘▝▘ ▝▘▝▘ ▀▘  ▀   ▝▀▘  ▀▀▝▘.
-
-     MailSpoof Uninstaller v1.0.0
-""")
-
 
 def ask_yes_no(prompt, default="n"):
     while True:
@@ -41,7 +29,6 @@ def ask_yes_no(prompt, default="n"):
         if ans.lower() in ("n", "no"):
             return False
         print("    Please answer yes or no.")
-
 
 def _extract_project_dir(wrapper_path):
     try:
@@ -171,7 +158,7 @@ def main():
         print(f"{Y}[*]{D} Removing config dir: {config_dir}")
         remove_dir(config_dir)
 
-    for deb in ["mailspoof-v1.0.0.deb", "mailspoof_1.0.0_all.deb"]:
+    for deb in ["mailspoof-v1.1.0.deb", "mailspoof_1.1.0_all.deb"]:
         deb_path = os.path.join(os.path.expanduser("~"), deb)
         if os.path.isfile(deb_path):
             print(f"{Y}[*]{D} Removing package: {deb_path}")

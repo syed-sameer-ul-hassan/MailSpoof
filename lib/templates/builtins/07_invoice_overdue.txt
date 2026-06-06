@@ -1,0 +1,33 @@
+Name: Overdue Invoice Reminder
+Category: Finance Impersonation
+Severity: High
+From Email: billing@vendor-payments.com
+From Name: Accounts Receivable
+Subject: Past Due Notice — Invoice #48217
+Body:
+<html>
+  <body style="font-family:'Helvetica Neue', Arial, sans-serif; color:#111827;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; margin:0 auto;">
+      <tr>
+        <td style="padding:0 0 12px 0; text-align:center;">
+          <img src="https://images.unsplash.com/photo-1521791055366-0d553872125f?auto=format&fit=crop&w=900&q=80" alt="Invoice" style="width:140px; border-radius:10px;" />
+        </td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #e5e7eb; padding:16px; border-radius:8px; font-size:14px; line-height:1.6; background:#f9fafb;">
+          <p><strong>Invoice #48217 is overdue.</strong> Please remit payment to avoid service interruption.</p>
+          <ul style="padding-left:18px;">
+            <li>Amount Due: $12,450.00 USD</li>
+            <li>Due Date: {TODAY}</li>
+            <li>Service: Quarterly license renewal</li>
+          </ul>
+          <p>
+            <a href="https://billing.example.net/pay/48217" style="background:#16a34a; color:#fff; padding:12px 16px; text-decoration:none; border-radius:4px;">View & Pay Invoice</a>
+          </p>
+          <p style="color:#6b7280; font-size:12px;">If already paid, please upload remittance advice to close this notice.</p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+Description: Finance impersonation urging payment via fake invoice portal.

@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 __author__ = "Syed Sameer Ul Hassan"
 __license__ = "Apache-2.0"
 
@@ -18,6 +18,9 @@ CONFIG_FILE = CONFIG_DIR / "config.json"
 LOG_FILE = CONFIG_DIR / "audit.log"
 REPORTS_DIR = CONFIG_DIR / "reports"
 TEMPLATES_DIR = CONFIG_DIR / "templates"
+
+_PACKAGE_TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
+_REPO_TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
 
 @dataclass
 class Scenario:
@@ -31,6 +34,8 @@ class Scenario:
     body: str
     description: str = ""
     source: str = "built-in"
+    tags: List[str] = field(default_factory=list)
+    disk_path: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -48,14 +53,29 @@ class TestResult:
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
 
-_BUILTINS_DIR = Path(__file__).resolve().parent.parent / "templates" / "builtins"
+def _get_builtin_dir() -> Path:
+    for path in (
+        _PACKAGE_TEMPLATES_DIR / "builtins",
+        _REPO_TEMPLATES_DIR / "builtins",
+    ):
+        if path.exists():
+            return path
+    return _REPO_TEMPLATES_DIR / "builtins"
+
+import re
+
+def _slugify(text: str) -> str:
+    text = text.lower().strip()
+    text = re.sub(r"[^a-z0-9]+", "_", text)
+    return text.strip("_")
 
 def load_builtin_templates() -> List[Dict[str, Any]]:
     scenarios: List[Dict[str, Any]] = []
-    if not _BUILTINS_DIR.exists():
+    builtin_dir = _get_builtin_dir()
+    if not builtin_dir.exists():
         return scenarios
 
-    files = sorted(_BUILTINS_DIR.glob("*.txt"))
+    files = sorted(builtin_dir.glob("*.txt"))
     for idx, path in enumerate(files, start=1):
         try:
             text = path.read_text(encoding="utf-8")
@@ -63,14 +83,15 @@ def load_builtin_templates() -> List[Dict[str, Any]]:
             data = _parse_template(text)
             data["id"] = idx
             data["source"] = "built-in"
+            data["disk_path"] = str(path)
             scenarios.append(data)
         except Exception as exc:
             logging.warning(f"Failed to load built-in template {path.name}: {exc}")
     return scenarios
 
 _TEMPLATE_KEYS = {
-    "name", "category", "severity", "from email", "from name",
-    "subject", "body", "description",
+    "id", "name", "category", "severity", "from email", "from name",
+    "subject", "body", "description", "tags",
 }
 
 def load_user_templates(start_id: int = 6) -> List[Dict[str, Any]]:
@@ -78,13 +99,13 @@ def load_user_templates(start_id: int = 6) -> List[Dict[str, Any]]:
     scenarios: List[Dict[str, Any]] = []
 
     search_paths = [TEMPLATES_DIR]
-    local_templates = Path(__file__).resolve().parent.parent / "templates"
-    if local_templates.exists() and local_templates != TEMPLATES_DIR:
-        search_paths.append(local_templates)
+    for extra in (_PACKAGE_TEMPLATES_DIR, _REPO_TEMPLATES_DIR):
+        if extra.exists() and extra != TEMPLATES_DIR and extra not in search_paths:
+            search_paths.append(extra)
 
     all_files: List[Path] = []
     for sp in search_paths:
-        for p in sorted(sp.glob("*.txt")):
+        for p in sorted(sp.rglob("*.txt")):
             if "builtins" not in str(p.parent):
                 all_files.append(p)
 
@@ -122,8 +143,9 @@ def load_user_templates(start_id: int = 6) -> List[Dict[str, Any]]:
                     "description": f"Custom body-only template: {path.name}",
                 }
 
-            data["id"] = idx
+            data["id"] = int(data.get("id", idx) or idx)
             data["source"] = "custom"
+            data["disk_path"] = str(path)
             scenarios.append(data)
         except Exception as exc:
             logging.warning(f"Failed to load user template {path.name}: {exc}")
@@ -180,6 +202,7 @@ def _parse_template(text: str) -> Dict[str, str]:
         result["body"] = "\n".join(body_lines)
 
     mapping = {
+        "id": "id",
         "name": "name",
         "category": "category",
         "severity": "severity",
@@ -188,6 +211,7 @@ def _parse_template(text: str) -> Dict[str, str]:
         "subject": "subject",
         "body": "body",
         "description": "description",
+        "tags": "tags",
     }
     normalized: Dict[str, str] = {}
     for old_key, new_key in mapping.items():
@@ -196,6 +220,8 @@ def _parse_template(text: str) -> Dict[str, str]:
     normalized.setdefault("description", f"Custom template.")
     normalized.setdefault("severity", "Medium")
     normalized.setdefault("category", "Custom")
+    tags_raw = normalized.get("tags", "")
+    normalized["tags"] = [t.strip() for t in tags_raw.split(",") if t.strip()] if isinstance(tags_raw, str) else []
 
     return normalized
 
@@ -215,6 +241,7 @@ class Config:
             "version": __version__,
             "smtp_server": {"host": "0.0.0.0", "port": 2525, "timeout": 30},
             "reporting": {"format": "json", "auto_generate": True},
+            "smtp_profiles": {},
         }
         if CONFIG_FILE.exists():
             try:

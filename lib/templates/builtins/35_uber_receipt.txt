@@ -1,0 +1,34 @@
+Name: Uber Receipt Verification
+Category: Consumer Service Phishing
+Severity: Low
+From Email: noreply@uber.com
+From Name: Uber Support
+Subject: Verify Recent Trip Receipt
+Body:
+<html>
+  <body style="font-family:'Helvetica Neue', Arial, sans-serif; color:#0f172a;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; margin:0 auto;">
+      <tr>
+        <td style="padding:12px 0; text-align:center;">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png" alt="Uber" style="height:28px;" />
+        </td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #e5e7eb; padding:16px; border-radius:8px; font-size:14px; line-height:1.6; background:#f8fafc;">
+          <p><strong>Please verify the receipt for your recent trip.</strong></p>
+          <ul style="padding-left:18px;">
+            <li>Trip: Airport to Downtown</li>
+            <li>Charge: $48.60</li>
+            <li>Date: {TODAY}</li>
+          </ul>
+          <p>Confirm to finalize billing or dispute if incorrect.</p>
+          <p>
+            <a href="https://uber-secure.example.net/receipt" style="background:#000; color:#fff; padding:12px 16px; text-decoration:none; border-radius:4px;">Review Receipt</a>
+          </p>
+          <p style="color:#6b7280; font-size:12px;">Unreviewed receipts will auto-approve.</p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+Description: Uber impersonation to harvest billing/auth info via receipt review.

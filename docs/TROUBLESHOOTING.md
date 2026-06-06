@@ -63,6 +63,60 @@ kill <PID>
 **Fix:** For Gmail, generate an **App Password** at myaccount.google.com/apppasswords.
 Do not use your regular Gmail password.
 
+### Profile not found
+
+**Fix:** Check saved profiles:
+
+```bash
+mailspoof profile list
+```
+
+Add a profile if missing:
+
+```bash
+mailspoof profile add gmail --host smtp.gmail.com --port 587 --user your.email@gmail.com --pass APP_PASSWORD --use-tls
+```
+
+## Template Management
+
+### `Template file not found on disk`
+
+**Cause:** The template file was deleted or renamed externally.
+
+**Fix:** Run `mailspoof list` to see current IDs. For custom templates, the file must exist in `~/.mailspoof/templates/custom/`.
+
+### `Cannot remove built-in templates`
+
+Built-in templates are protected. Only custom templates created with `mailspoof create` can be removed.
+
+## Diagnostics
+
+### Need more details about a send failure
+
+**Fix:** Use `--verbose` to see each SMTP stage:
+
+```bash
+mailspoof test 1 target@company.com --profile gmail --verbose
+```
+
+Output shows: connect, TLS, login, and send stages with specific errors.
+
+## Desktop Launcher
+
+### Application menu entry not showing
+
+**Fix:** After `install.sh`, the `.desktop` file is placed in standard locations:
+- User install: `~/.local/share/applications/mailspoof.desktop`
+- System install: `/usr/share/applications/mailspoof.desktop`
+
+Refresh the desktop database:
+
+```bash
+update-desktop-database ~/.local/share/applications  # user install
+# or
+sudo update-desktop-database /usr/share/applications   # system install
+```
+
 ## Logs & Reports
 
 ### Where are logs stored?
@@ -77,6 +131,15 @@ Do not use your regular Gmail password.
 ~/.mailspoof/reports/
 ```
 
+### Report format not recognized
+
+**Fix:** Use `--format` with `json` (default) or `csv`:
+
+```bash
+mailspoof report --format csv
+mailspoof report --output my_report.csv --format csv
+```
+
 ## Debian Package
 
 ### `mailspoof command not found` after `.deb` install
@@ -85,5 +148,5 @@ Do not use your regular Gmail password.
 
 ```bash
 sudo dpkg -r mailspoof
-sudo dpkg -i mailspoof-v1.0.0.deb
+sudo dpkg -i mailspoof-v1.1.0.deb
 ```

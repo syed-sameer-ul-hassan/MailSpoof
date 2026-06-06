@@ -7,22 +7,9 @@ R = "\033[91m"
 Y = "\033[93m"
 D = "\033[0m"
 
-LOGO = f"""
-{C}▗▄ ▄▖       █  ▗▄▖   ▗▄▖                  ▄▄ {D}
-{C}▐█ █▌       ▀  ▝▜▌  ▗▛▀▜                 ▐▛▀ {D}
-{C}▐███▌ ▟██▖ ██   ▐▌  ▐▙   ▐▙█▙  ▟█▙  ▟█▙ ▐███ {D}
-{C}▐▌█▐▌ ▘▄▟▌  █   ▐▌   ▜█▙ ▐▛ ▜▌▐▛ ▜▌▐▛ ▜▌ ▐▌  {D}
-{C}▐▌▀▐▌▗█▀▜▌  █   ▐▌     ▜▌▐▌ ▐▌▐▌ ▐▌▐▌ ▐▌ ▐▌  {D}
-{C}▐▌ ▐▌▐▙▄█▌▗▄█▄▖ ▐▙▄ ▐▄▄▟▘▐█▄█▘▝█▄█▘▝█▄█▘ ▐▌  {D}
-{C}▝▘ ▝▘ ▀▀▝▘▝▀▀▀▘  ▀▀  ▀▀▘ ▐▌▀▘  ▝▀▘  ▝▀▘  ▝▘  {D}
-{C}                         ▐▌                  {D}
-"""
-
-
 def print_banner():
     print(LOGO)
     print(f"     {B}Professional Email Security Assessment v{__version__}{D}")
-
 
 def print_server_banner(host: str, port: int, log_file: str = ""):
     print(LOGO)
@@ -34,11 +21,9 @@ def print_server_banner(host: str, port: int, log_file: str = ""):
     print()
     print("  Press Ctrl+C to stop.")
 
-
 def clear_screen():
     import os
     os.system("clear" if os.name != "nt" else "cls")
-
 
 def print_legal():
     print(f"{Y}[!] Legal Notice:{D} Use only on systems you own or have explicit permission to test.")

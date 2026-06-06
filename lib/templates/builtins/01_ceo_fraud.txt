@@ -1,0 +1,37 @@
+Name: Payment Authorization - CFO
+Category: Business Email Compromise
+Severity: Critical
+From Email: cfo@targetcompany.com
+From Name: Laura Chen, CFO
+Subject: Immediate Authorization Needed — Vendor Payment
+Body:
+<html>
+  <body style="font-family:Arial, sans-serif; color:#0f172a;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; margin:0 auto;">
+      <tr>
+        <td style="padding:0 0 16px 0;">
+          <img src="https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=900&q=80" alt="Office" style="width:100%; border-radius:6px;" />
+        </td>
+      </tr>
+      <tr>
+        <td style="font-size:15px; line-height:1.6;">
+          <p>Hi,</p>
+          <p>I’m in back-to-back calls with the board. We must clear a vendor settlement <strong>today</strong> to avoid a late fee penalty.</p>
+          <p><strong>Action required:</strong> release payment to the new vendor account shown below. This is confidential and time-sensitive—handle directly.</p>
+          <ul style="padding-left:18px;">
+            <li><strong>Vendor:</strong> Apex Global Holdings</li>
+            <li><strong>Amount:</strong> $85,000.00 USD</li>
+            <li><strong>Due:</strong> Today EOD</li>
+          </ul>
+          <p>Review the remittance sheet and approve now:</p>
+          <p>
+            <a href="https://secure-payments.example.net/approve?v=4382" style="background:#0ea5e9; color:#fff; padding:12px 16px; border-radius:4px; text-decoration:none;">Open Payment Instruction</a>
+          </p>
+          <p>If finance flags anything, tell them this is approved. I need confirmation once sent.</p>
+          <p>Thanks,<br/>John</p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+Description: CEO impersonation pressuring urgent payment with link to “payment instruction”.

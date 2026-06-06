@@ -49,8 +49,11 @@ Issues = "https://github.com/syed-sameer-ul-hassan/MailSpoof/issues"
 Documentation = "https://github.com/syed-sameer-ul-hassan/MailSpoof/blob/main/README.md"
 
 [project.scripts]
-mailspoof = "mailspoof:main"
+mailspoof = "lib.cli:main"
 
 [tool.setuptools]
 packages = ["lib"]
 include-package-data = true
+
+[tool.setuptools.package-data]
+lib = ["templates/builtins/*.txt"]

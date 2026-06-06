@@ -1,0 +1,34 @@
+Name: LinkedIn Security Verification
+Category: Social Media Phishing
+Severity: High
+From Email: security@linkedin.com
+From Name: LinkedIn Trust & Safety
+Subject: Action Needed: Unusual Activity Detected on Your LinkedIn
+Body:
+<html>
+  <body style="font-family:'Helvetica Neue', Arial, sans-serif; color:#0f172a;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; margin:0 auto;">
+      <tr>
+        <td style="padding:12px 0; text-align:center;">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/0/01/LinkedIn_Logo.svg" alt="LinkedIn" style="height:32px;" />
+        </td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #e5e7eb; padding:16px; border-radius:8px; font-size:14px; line-height:1.6; background:#f8fafc;">
+          <p><strong>We detected unusual activity on your LinkedIn account.</strong></p>
+          <ul style="padding-left:18px;">
+            <li>New login attempt from Chrome • Berlin, DE</li>
+            <li>Device: Windows 11</li>
+            <li>Time: {TODAY} 07:48 UTC</li>
+          </ul>
+          <p>For your security, please verify your account to continue using messaging and job applications.</p>
+          <p>
+            <a href="https://linkedin-secure.example.net/verify" style="background:#0a66c2; color:#fff; padding:12px 16px; text-decoration:none; border-radius:4px;">Verify Account</a>
+          </p>
+          <p style="color:#6b7280; font-size:12px;">If you didn’t initiate this, secure your account immediately.</p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+Description: LinkedIn impersonation prompting verification after fake unusual activity.

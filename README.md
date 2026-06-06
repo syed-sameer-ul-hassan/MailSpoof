@@ -1,8 +1,8 @@
 <div align="center">
 
-| ⚠️ **Maintenance Notice** |
+| ✅ **Issue Resolved** |
 | :--- |
-| We are currently experiencing issues installing `MailSpoof` packages. <br> Active fixes are underway, with a resolution expected by **June 8, 2026**. |
+| Thank you for your patience! The installation issues have been resolved. All fixes are live and the tool is fully operational. |
 
 </div>
 
@@ -17,7 +17,6 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.8%2B-green)](https://www.python.org/downloads/)
-[![CI](https://img.shields.io/badge/CI-GitHub%20Actions-orange)](.github/workflows/ci.yml)
 [![GitHub Release](https://img.shields.io/github/v/release/syed-sameer-ul-hassan/MailSpoof.svg)](https://github.com/syed-sameer-ul-hassan/MailSpoof/releases)
 [![Downloads](https://img.shields.io/github/downloads/syed-sameer-ul-hassan/MailSpoof/total.svg)](https://github.com/syed-sameer-ul-hassan/MailSpoof/releases)
 [![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg)]()
@@ -36,9 +35,15 @@
 ## Table of Contents
 
 - [Features](#features)
+- [Technology Stack](#technology-stack)
+- [How It Works](#how-it-works)
 - [Quick Start](#quick-start)
 - [Installation](#installation)
 - [Usage](#usage)
+  - [Interactive Session Workflow](#interactive-session-workflow)
+  - [Template Lifecycle](#template-lifecycle)
+  - [SMTP Profile Workflow](#smtp-profile-workflow)
+  - [Report Generation Flow](#report-generation-flow)
 - [Email Spoofing Scenarios](#email-spoofing-scenarios)
 - [Custom Templates](#custom-templates)
 - [SMTP Relay & Delivery](#smtp-relay--delivery)
@@ -53,13 +58,16 @@
 ## Features
 
 - **Built-in SMTP Server** — Multi-threaded raw-socket SMTP server with optional MX relay for local testing
-- **Phishing Simulation Scenarios** — 5 pre-built email spoofing templates (CEO fraud, IT support, HR, Microsoft, PayPal)
-- **Custom Template Engine** — Create and save your own phishing email templates interactively
+- **Phishing Simulation Scenarios** — 45+ pre-built HTML email templates across social media, SaaS, financial, developer platforms, and BEC
+- **Custom Template Engine** — Create, edit, preview, filter, and remove your own phishing email templates interactively
 - **External SMTP Relay** — Send via Gmail, Outlook, SendGrid, or any authenticated SMTP server with TLS/SSL support
-- **Audit Logging** — Every test is logged with timestamps, success/failure, and server details
-- **JSON Reports** — Generate assessment reports with success rates and security recommendations
+- **SMTP Profile Management** — Save and reuse named SMTP relay configurations
+- **Audit Logging** — Every test is logged with timestamps, success/failure, error details, and server details
+- **JSON & CSV Reports** — Generate assessment reports with success rates, per-test errors, and security recommendations
+- **Template Preview** — Preview HTML/text content before sending
+- **Template Filtering** — Filter templates by name, category, tags, or content
+- **Desktop Launcher** — `.desktop` entry with icon for Linux application menus (auto-installed)
 - **Cross-Platform** — Works on Linux, macOS, and Termux (Android)
-- **Debian Package** — Install system-wide via `.deb`
 - **Apache-2.0 Licensed** — Free for commercial and personal use
 
 ### Architecture Overview
@@ -71,14 +79,110 @@ flowchart TD
     C --> D{Command?}
     D -->|start / server| E[lib/server.py<br/>SMTP Server]
     D -->|test / custom| F[lib/engine.py<br/>Email Builder]
-    D -->|list / create| G[lib/core.py<br/>Templates]
+    D -->|list / create / preview / edit / remove| G[lib/core.py<br/>Templates]
     D -->|logs / report| H[lib/audit.py<br/>Audit & Reports]
-    E -->|MX Relay| I[Recipient Mail Server]
+    D -->|profile| I[lib/core.py<br/>Config & Profiles]
+    E -->|MX Relay| M[Recipient Mail Server]
     F -->|Send| J[External SMTP Relay]
     F -->|Send| E
-    J --> I
+    J --> M
     H --> K[audit.log / reports/]
 ```
+
+---
+
+## Technology Stack
+
+MailSpoof is built entirely in **Python 3.8+** with zero external runtime dependencies for core functionality. Below is the complete technology breakdown:
+
+### Core Language & Standard Library
+
+| Technology | Purpose |
+|------------|---------|
+| **Python 3.8+** | Core programming language with type hints (`\|`, `list[T]`) |
+| **argparse** | CLI argument parsing and subcommand routing (`start`, `test`, `custom`, `list`, `create`, `preview`, `edit-template`, `remove-template`, `profile`, `logs`, `report`) |
+| **smtplib** | SMTP client for external relay sending (AUTH, STARTTLS, SSL) |
+| **socket** | Raw TCP socket handling for built-in SMTP server |
+| **threading** | Multi-threaded built-in SMTP server (concurrent client sessions) |
+| **json** | Config file (`config.json`) and audit log (`audit.log`) serialization |
+| **logging** | Structured audit logging to file and stdout |
+
+### Email & MIME Construction
+
+| Technology | Purpose |
+|------------|---------|
+| **email.mime.multipart** | `multipart/alternative` MIME messages (HTML + plain text) |
+| **email.mime.text** | MIME text parts for email body |
+| **email.header** | UTF-8 encoded email subject headers |
+| **email.utils** | Message-ID generation and RFC-compliant date formatting |
+| **html** | HTML-to-text conversion for plain-text fallback |
+
+### Data & Configuration
+
+| Technology | Purpose |
+|------------|---------|
+| **dataclasses** | `Scenario`, `TestResult` typed data structures |
+| **pathlib** | Cross-platform path handling (`~/.mailspoof/`, templates) |
+| **re** | Regex for HTML stripping, template parsing, SMTP response parsing |
+
+### Optional Dependencies
+
+| Technology | Purpose |
+|------------|---------|
+| **dnspython** | DNS MX record lookups for direct MX delivery (`pip install dnspython`) |
+| **setuptools** | Package building and console script entry points |
+| **wheel** | Python wheel distribution format |
+
+### Reporting & Output
+
+| Technology | Purpose |
+|------------|---------|
+| **JSON** | Default report format (`report_YYYYMMDD_HHMMSS.json`) |
+| **CSV** | Tabular report export (`report_YYYYMMDD_HHMMSS.csv`) |
+| **ANSI Color Codes** | Terminal color output (red/yellow/green/cyan for severity) |
+
+### Packaging & Distribution
+
+| Technology | Purpose |
+|------------|---------|
+| **setuptools + setup.py** | PyPI-compatible package with console script entry point |
+| **pyproject.toml** | Modern Python packaging (PEP 517/518) |
+| **.deb / dpkg** | Debian/Ubuntu system package |
+| **.rpm / rpmbuild** | Fedora/RHEL/CentOS system package |
+| **PKGBUILD** | Arch Linux AUR package |
+| **Makefile** | Generic install/uninstall |
+
+### Desktop Integration
+
+| Technology | Purpose |
+|------------|---------|
+| **.desktop entry** | Linux application menu launcher |
+| **SVG icon** | Scalable vector icon for all display resolutions |
+| **XDG directories** | Standard icon/application paths (`~/.local/share/`, `/usr/share/`) |
+
+---
+
+## How It Works
+
+MailSpoof operates through a simple 3-stage pipeline: **Select** a template, **Configure** the target and SMTP relay, then **Send** and log the result.
+
+```mermaid
+flowchart LR
+    A[Select Template] --> B[Configure Target & SMTP]
+    B --> C[Build HTML Email]
+    C --> D[Send via Relay or MX]
+    D --> E{Success?}
+    E -->|Yes| F[Log Success + Report]
+    E -->|No| G[Log Error + Tips]
+    F --> H[Audit.log]
+    G --> H
+```
+
+**Key paths:**
+- **Built-in templates** → 45+ ready-to-use scenarios
+- **Custom templates** → Create your own with `mailspoof create`
+- **SMTP relay** → Use Gmail, Outlook, SendGrid, or saved profiles
+- **Direct MX** → Deliver straight to recipient server (often blocked by ISPs)
 
 ---
 
@@ -95,7 +199,7 @@ chmod +x mailspoof
 Or install via Debian package:
 
 ```bash
-sudo dpkg -i mailspoof-v1.0.0.deb
+sudo dpkg -i mailspoof-v1.1.0.deb
 mailspoof --version
 ```
 
@@ -116,7 +220,7 @@ Supported: **Debian/Ubuntu**, **Fedora/RHEL/CentOS**, **Arch/Manjaro**, **macOS*
 ### Option 2: Debian / Ubuntu (.deb)
 
 ```bash
-sudo dpkg -i mailspoof-v1.0.0.deb
+sudo dpkg -i mailspoof-v1.1.0.deb
 sudo apt-get install -f
 ```
 
@@ -218,16 +322,63 @@ mailspoof test 1 victim@company.com
 mailspoof server --host 0.0.0.0 --port 2525
 ```
 
-### List All Scenarios
+### List All Templates
 
 ```bash
-mailspoof list
+mailspoof list                              # All templates
+mailspoof list --filter linkedin            # Filter by name/tag/content
+mailspoof list --filter "social media"      # Filter by category
 ```
 
 ### Create Custom Phishing Template
 
 ```bash
 mailspoof create
+# or
+mailspoof -t
+```
+
+Custom templates are auto-assigned the next available ID.
+
+### Preview Template
+
+```bash
+mailspoof preview 1                         # Text preview (strips HTML)
+mailspoof preview 1 --raw                   # Show raw HTML
+```
+
+### Edit Template
+
+```bash
+mailspoof edit-template 1                   # Edit in $EDITOR (default nano)
+```
+
+Works for both built-in and custom templates.
+
+### Remove Template
+
+```bash
+mailspoof remove-template 46                # Only custom templates
+```
+
+### Template Lifecycle
+
+Manage templates from creation to deletion:
+
+```mermaid
+flowchart TD
+    A[mailspoof create] --> B[Auto-assign ID]
+    B --> C[Save to ~/.mailspoof/templates/custom/]
+    C --> D[mailspoof list]
+    D --> E{Need changes?}
+    E -->|Yes| F[mailspoof edit-template <id>]
+    F --> G[Edit in $EDITOR]
+    G --> D
+    E -->|No| H[mailspoof preview <id>]
+    H --> I[mailspoof test <id> target@email.com]
+    I --> J{Done with template?}
+    J -->|Yes| K[mailspoof remove-template <id>]
+    J -->|No| D
 ```
 
 ### Fully Custom Email Test
@@ -243,7 +394,37 @@ mailspoof custom \
   --smtp-port 587 \
   --smtp-user your.email@gmail.com \
   --smtp-pass YOUR_APP_PASSWORD \
-  --use-tls
+  --use-tls \
+  --verbose
+```
+
+### Use Saved SMTP Profiles
+
+```bash
+# Save a profile
+mailspoof profile add gmail --host smtp.gmail.com --port 587 --user your.email@gmail.com --pass APP_PASSWORD --use-tls
+
+# List profiles
+mailspoof profile list
+
+# Use profile in any command
+mailspoof test 1 victim@company.com --profile gmail --verbose
+mailspoof custom --from-email ... --target ... --profile gmail
+mailspoof start --profile gmail
+```
+
+### SMTP Profile Workflow
+
+Save credentials once, reuse across all send commands:
+
+```mermaid
+flowchart LR
+    A[mailspoof profile add <name>] --> B[Store in ~/.mailspoof/config.json]
+    B --> C[mailspoof profile list]
+    C --> D[mailspoof test 1 target --profile <name>]
+    D --> E[Auto-fill host/port/user/pass]
+    E --> F[Send Email]
+    F --> G[mailspoof profile remove <name>]
 ```
 
 ### View Audit Logs
@@ -255,24 +436,61 @@ mailspoof logs --lines 50
 ### Generate Security Assessment Report
 
 ```bash
-mailspoof report --output ./report.json
+mailspoof report                          # JSON (default)
+mailspoof report --format csv             # CSV format
+mailspoof report --output ./report.csv --format csv
+```
+
+### Report Generation Flow
+
+Every send is logged. Reports aggregate these into actionable assessments:
+
+```mermaid
+flowchart TD
+    A[mailspoof test 1 target] --> B[Log to ~/.mailspoof/audit.log]
+    C[mailspoof custom ...] --> B
+    D[mailspoof start ...] --> B
+    B --> E[mailspoof report]
+    E --> F{Format?}
+    F -->|json| G[report_YYYYMMDD_HHMMSS.json]
+    F -->|csv| H[report_YYYYMMDD_HHMMSS.csv]
+    G --> I[Success rate, risk level, per-test errors]
+    H --> I
 ```
 
 ---
 
 ## Email Spoofing Scenarios
 
-MailSpoof includes professionally crafted phishing simulation templates:
+MailSpoof includes **45+ professionally crafted** HTML phishing simulation templates across multiple categories:
 
 | ID | Scenario | Category | Severity |
 |----|----------|----------|----------|
-| 1 | CEO Fraud — Wire Transfer | Business Email Compromise | Critical |
-| 2 | IT Support — Password Reset | Credential Harvesting | High |
-| 3 | HR — Document Request | Data Exfiltration | Medium |
-| 4 | Microsoft License Expired | Brand Impersonation | High |
-| 5 | PayPal Security Alert | Financial Phishing | Critical |
+| 1 | Payment Authorization - CFO | BEC | Critical |
+| 2 | IT Service Desk - Password Reset | Credential Harvesting | High |
+| 3 | Account Suspension Notice - Bank Security | Financial | Critical |
+| 4 | Microsoft 365 License Expiry Notice | SaaS | Medium |
+| 5 | PayPal Account Review | Financial | High |
+| 6 | HR Benefits Form Update | HR | High |
+| 9 | LinkedIn Security Verification | Social Media | High |
+| 10 | Facebook Policy Violation Review | Social Media | High |
+| 12 | Twitter/X Account Lock Notice | Social Media | High |
+| 14 | Slack Workspace Verification | SaaS | High |
+| 15 | Zoom Account Suspension Notice | SaaS | High |
+| 17 | GitHub OAuth Re-Authentication | Developer | High |
+| 18 | Salesforce MFA Reset | Developer | High |
+| 19 | Apple ID Locked Alert | Consumer | High |
+| 20 | AWS Root Access Alert | Cloud | Critical |
+| 24 | GitLab OAuth Token Renewal | Developer | High |
+| 25 | Bitbucket Access Review | Developer | Medium |
+| 26 | GitHub SSO Re-Verification | Developer | High |
+| 32 | Spotify Payment Verification | Consumer | Medium |
+| 33 | Netflix Account Verification | Consumer | Medium |
+| 38 | Meta Ads Payment Failure | Social Media | High |
+| 39 | Amazon Order Verification | Consumer | Medium |
+| 45 | Prime Video Payment Authorization | Consumer | Medium |
 
-See [docs/SECURITY_SCENARIOS.md](docs/SECURITY_SCENARIOS.md) for full details.
+**Full catalog:** See [docs/SECURITY_SCENARIOS.md](docs/SECURITY_SCENARIOS.md) for all 45+ templates with descriptions.
 
 ---
 
@@ -297,6 +515,7 @@ https://evil.com/reset
 ### Full Template with Metadata
 
 ```text
+Id: 47
 Name: Custom Phishing Test
 Category: Social Engineering
 Severity: High
@@ -304,10 +523,27 @@ From Email: security@company.com
 From Name: Security Team
 Subject: Immediate Action Required
 Body:
-This is the email body.
-It can span multiple lines.
+<html>
+  <body style="font-family:Arial,sans-serif">
+    <p>Your message here.</p>
+    <a href="https://..." style="background:#2563eb;color:#fff;padding:12px 16px;border-radius:4px">Action</a>
+  </body>
+</html>
 Description: Tests employee awareness of suspicious links.
+Tags: custom, testing
 ```
+
+**Fields:**
+- `Id` — Unique ID (auto-assigned for custom templates created via `mailspoof create`)
+- `Name` — Template display name
+- `Category` — Template category (e.g., Custom, Social Media, Financial)
+- `Severity` — Critical / High / Medium / Low
+- `From Email` — Default sender email address
+- `From Name` — Default sender display name
+- `Subject` — Default email subject
+- `Body` — Email body (HTML supported; `{TODAY}` replaced with current date)
+- `Description` — Template description
+- `Tags` — Comma-separated tags for filtering (e.g., `social, saas`)
 
 ---
 
@@ -330,13 +566,16 @@ See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for delivery error fixes.
 All email spoofing tests are automatically logged:
 
 - **Log file:** `~/.mailspoof/audit.log`
-- **Reports:** `~/.mailspoof/reports/report_YYYYMMDD_HHMMSS.json`
+- **JSON Reports:** `~/.mailspoof/reports/report_YYYYMMDD_HHMMSS.json`
+- **CSV Reports:** `~/.mailspoof/reports/report_YYYYMMDD_HHMMSS.csv`
 
 Reports include:
 - Total tests, success/failure counts
 - Success rate percentage
+- Per-test error details
 - Risk assessment (CRITICAL / HIGH / MEDIUM)
 - SPF/DKIM/DMARC bypass recommendations
+- Breakdown by scenario and test type
 
 ---
 
@@ -346,32 +585,48 @@ Reports include:
 MailSpoof/
 ├── lib/
 │   ├── banner.py       # Shared logo / banner helpers
-│   ├── core.py         # Configuration, data classes, scenarios
+│   ├── core.py         # Configuration, data classes, scenarios, profiles
 │   ├── server.py       # Multi-threaded SMTP server with MX relay
 │   ├── engine.py       # Email crafting, delivery, error handling
-│   ├── audit.py        # Log viewer and report generator
+│   ├── audit.py        # Log viewer and report generator (JSON/CSV)
 │   └── cli.py          # Command-line interface
-├── templates/builtins/   # Pre-built phishing scenarios
-├── docs/               # Security scenarios, deployment, troubleshooting
-├── scripts/            # Build scripts and wrappers
+├── lib/templates/
+│   └── builtins/       # 45+ pre-built HTML phishing scenarios
+├── assets/
+│   └── icon.svg        # Application icon for desktop launcher
+├── docs/
+│   ├── SECURITY_SCENARIOS.md   # Full 45+ template catalog
+│   ├── TROUBLESHOOTING.md      # Delivery error fixes
+│   ├── DEPLOYMENT.md           # Deployment guide
+│   └── CHANGELOG.md            # Version history & release notes
+├── scripts/
+│   ├── build-deb.sh            # Debian package builder
+│   └── mailspoof-wrapper.sh    # System wrapper script
 ├── .github/
 │   ├── ISSUE_TEMPLATE/
-│   │   ├── bug_report.md
-│   │   ├── feature_request.md
-│   │   └── seo_optimization.md
-│   ├── dependabot.yml          # Dependency updates
-│   └── FUNDING.yml             # Sponsorship links
+│   │   ├── bug_report.md         # Standard bug report template
+│   │   ├── bug_report_method.md  # Detailed reporting guide
+│   │   ├── feature_request.md   # Feature request template
+│   │   └── seo_optimization.md  # SEO optimization template
+│   ├── FUNDING.yml              # Sponsorship links
+│   └── dependabot.yml         # Dependency updates
 ├── mailspoof           # Entry-point executable
+├── mailspoof.desktop   # Linux desktop launcher (auto-installed)
 ├── install.sh          # Universal cross-platform installer
 ├── uninstall.py        # Python uninstaller
+├── setup.py            # PyPI setuptools config
+├── pyproject.toml      # Modern Python packaging
+├── requirements.txt    # Python dependencies
 ├── PKGBUILD            # Arch Linux package build
 ├── mailspoof.spec      # Fedora/RHEL RPM spec
 ├── Makefile            # Generic build & install
-├── setup.py            # PyPI setuptools config
-├── pyproject.toml      # Modern Python packaging
-├── requirements.txt
+├── SECURITY.md         # Security policy & responsible use
+├── CITATION.cff        # Citation metadata
+├── CODE_OF_CONDUCT.md  # Community guidelines
+├── CONTRIBUTING.md     # Contribution guidelines
+├── .gitignore          # Git ignore rules
 ├── LICENSE             # Apache-2.0
-└── README.md
+└── README.md           # This file
 ```
 
 ---
@@ -863,7 +1118,7 @@ bash install.sh
 Or via `.deb`:
 
 ```bash
-sudo dpkg -i mailspoof-v1.0.0.deb
+sudo dpkg -i mailspoof-v1.1.0.deb
 ```
 
 ### Q: Where are templates stored?
@@ -1050,7 +1305,7 @@ sudo ufw allow out 25/tcp
 ### mailspoof list
 
 ```text
- MailSpoof Professional Email Security Assessment v1.0.0
+ MailSpoof Professional Email Security Assessment v1.1.0
 
 --- Available Templates ---
 
@@ -1066,7 +1321,7 @@ sudo ufw allow out 25/tcp
 ### mailspoof start
 
 ```text
- MailSpoof SMTP Server v1.0.0
+ MailSpoof SMTP Server v1.1.0
 
   Listening on 0.0.0.0:2525
   Logs: /home/user/.mailspoof/audit.log

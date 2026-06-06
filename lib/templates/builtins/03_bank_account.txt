@@ -1,0 +1,40 @@
+Name: Account Suspension Notice - Bank Security
+Category: Financial Institution Fraud
+Severity: Critical
+From Email: security@banksecure.com
+From Name: Bank Security Operations
+Subject: Immediate Verification Required - Account Suspension Notice
+Body:
+<html>
+  <body style="font-family:'Helvetica Neue', Arial, sans-serif; color:#0b1726;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; margin:0 auto;">
+      <tr>
+        <td style="padding:12px 0; text-align:center;">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/e/e3/Bank_of_America_logo.svg" alt="Bank" style="height:44px;" />
+        </td>
+      </tr>
+      <tr>
+        <td style="background:#0f172a; color:#e2e8f0; padding:14px 16px; border-radius:8px 8px 0 0; font-size:14px;">
+          <strong>Account Status: SUSPENDED</strong><br/>
+          Suspended on {TODAY} due to security concerns.
+        </td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #e2e8f0; border-top:0; padding:16px; font-size:14px; line-height:1.6;">
+          <p>We detected activity that requires your immediate verification to prevent permanent restriction.</p>
+          <ul style="padding-left:18px;">
+            <li>Multiple failed login attempts</li>
+            <li>Unrecognized device sign-in</li>
+            <li>Potential unauthorized transfers</li>
+          </ul>
+          <p>Please verify your identity to restore access:</p>
+          <p>
+            <a href="https://secure-bofa.example.com/verify" style="background:#e11d48; color:#fff; padding:12px 16px; text-decoration:none; border-radius:4px;">Restore Access</a>
+          </p>
+          <p style="color:#6b7280; font-size:12px;">If you do not verify within 48 hours, your account may be permanently restricted.</p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+Description: Banking impersonation with suspended status panel and restore-access link.

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=MailSpoof
+Comment=MailSpoof
+Exec=mailspoof -h
+Icon=/usr/share/icons/hicolor/scalable/apps/mailspoof.svg
+Terminal=true
+Categories=Utility;Network;

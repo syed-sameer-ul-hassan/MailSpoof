@@ -54,7 +54,7 @@ def show_logs(config: Config, lines: int = 20):
     print(f"  Log file: {LOG_FILE}")
     print(f"{'═' * 70}\n")
 
-def generate_report(config: Config, output_path: str | None = None):
+def generate_report(config: Config, output_path: str | None = None, fmt: str = "json"):
     entries = load_entries(config)
     if not entries:
         print("No test data available for reporting.")
@@ -129,10 +129,33 @@ def generate_report(config: Config, output_path: str | None = None):
 
     if not output_path:
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_path = str(REPORTS_DIR / f"report_{ts}.json")
+        ext = "csv" if fmt == "csv" else "json"
+        output_path = str(REPORTS_DIR / f"report_{ts}.{ext}")
 
-    with open(output_path, "w") as fh:
-        json.dump(report, fh, indent=2)
+    if fmt == "csv":
+        import csv
+
+        headers = ["timestamp", "test_type", "scenario", "target", "from_email", "success", "category", "severity", "smtp_server", "error"]
+        with open(output_path, "w", newline="") as fh:
+            writer = csv.DictWriter(fh, fieldnames=headers)
+            writer.writeheader()
+            for e in entries:
+                details = e.get("details", {}) or {}
+                writer.writerow({
+                    "timestamp": e.get("timestamp", ""),
+                    "test_type": e.get("test_type", ""),
+                    "scenario": e.get("scenario", ""),
+                    "target": e.get("target", ""),
+                    "from_email": e.get("from_email", ""),
+                    "success": e.get("success", False),
+                    "category": details.get("category", ""),
+                    "severity": details.get("severity", ""),
+                    "smtp_server": details.get("smtp_server", ""),
+                    "error": details.get("error", ""),
+                })
+    else:
+        with open(output_path, "w") as fh:
+            json.dump(report, fh, indent=2)
 
     print(f"\n[REPORT]  Saved to {output_path}")
     print(f"  Total tests: {total}")
