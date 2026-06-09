@@ -49,7 +49,7 @@ install_shortcut() {
     if [[ ! -f "$icon_src" ]] || [[ ! -f "$desktop_src" ]]; then
         echo "[~] Skipping launcher install (icon or desktop file missing)."
         return
-    }
+    fi
 
     if [[ "$scope" == "system" ]]; then
         local icon_dest="/usr/share/icons/hicolor/scalable/apps/mailspoof.svg"
@@ -71,10 +71,6 @@ install_shortcut() {
     fi
 }
 
-_SED_INPLACE="sed -i"
-if [[ "$PLATFORM" == "macos" ]]; then
-    _SED_INPLACE="sed -i ''"
-fi
 
 print_banner() {
     echo ""
