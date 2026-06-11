@@ -1,5 +1,5 @@
 Name:           mailspoof
-Version:        1.0.0
+Version:        1.2.0
 Release:        1%{?dist}
 Summary:        Professional Email Spoofing and Phishing Simulation Framework
 
@@ -50,5 +50,5 @@ install -Dm644 LICENSE %{buildroot}%{_defaultlicensedir}/%{name}/LICENSE
 %license LICENSE
 
 %changelog
-* Wed Jun 04 2026 Syed Sameer Ul Hassan <support@mailspoof.local> - 1.0.0-1
+* Thu Jun 11 2026 Syed Sameer Ul Hassan <support@mailspoof.local> - 1.2.0-1
 - Initial RPM release

@@ -6,6 +6,20 @@
 
 All notable changes to MailSpoof are documented here.
 
+## [1.2.0] - 2026-06-11
+
+### Added — Tracking & Features
+- **HTTP Tracking Server** — Embedded HTTP server running on port 8080.
+- **Bulk Target Lists (CSV)** — Send to hundreds of targets via `--target-list`.
+- **Attachment Payloads** — Attach files to test gateway filtering via `--attach`.
+- **Advanced Headers** — Inject custom `--reply-to` and `--x-mailer`.
+- **Docker Support** — Deploy instantly using `docker-compose up`.
+- **17 New Phishing Templates** — Total templates increased from 45 to 62, adding new logistics, credential harvesting, document phishing, and device alert scenarios.
+
+### Fixed
+- **Uninstall crash fix** — Resolved a `SyntaxError` crash in `uninstall.py` where `print_banner()` was missing its function body.
+
+
 ## [1.1.0] - 2026-06-06
 
 ### Added — Templates

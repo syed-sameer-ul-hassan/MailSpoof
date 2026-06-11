@@ -1,0 +1,29 @@
+Name: Google - Critical Security Alert
+Category: Credential Harvesting
+Severity: High
+From Email: no-reply@google-security-alert.com
+From Name: Google Security
+Subject: Critical security alert for your account
+Description: Simulates a Google critical security alert about a suspicious sign-in attempt.
+
+Body:
+<div style="font-family: Roboto, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff;">
+    <div style="padding: 20px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center;">
+        <span style="font-size: 24px; font-weight: 500; color: #4285F4;">G</span><span style="font-size: 24px; font-weight: 500; color: #EA4335;">o</span><span style="font-size: 24px; font-weight: 500; color: #FBBC05;">o</span><span style="font-size: 24px; font-weight: 500; color: #4285F4;">g</span><span style="font-size: 24px; font-weight: 500; color: #34A853;">l</span><span style="font-size: 24px; font-weight: 500; color: #EA4335;">e</span>
+    </div>
+    <div style="padding: 30px;">
+        <div style="color: #EA4335; font-size: 18px; font-weight: 500; margin-bottom: 15px;">⚠ Critical security alert</div>
+        <p style="color: #202124;">A new sign-in to your Google Account was detected. We're not sure if this was you.</p>
+        <div style="background: #f8f9fa; border: 1px solid #dadce0; border-radius: 8px; padding: 20px; margin: 20px 0;">
+            <div style="font-weight: 500; margin-bottom: 12px; color: #202124;">Sign-in details</div>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr><td style="padding: 6px 0; color: #5f6368;">Device</td><td style="color: #202124;">Windows PC</td></tr>
+                <tr><td style="padding: 6px 0; color: #5f6368;">Location</td><td style="color: #202124;">Ukraine (Estimated)</td></tr>
+                <tr><td style="padding: 6px 0; color: #5f6368;">Time</td><td style="color: #202124;">{TODAY}</td></tr>
+            </table>
+        </div>
+        <p style="color: #202124;">If this was you, no action is needed. <br>If not, your account may be compromised.</p>
+        <a href="http://localhost:8080/track" style="display: inline-block; background: #1a73e8; color: white; padding: 10px 24px; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: 500; margin-top: 10px;">Check activity</a>
+        <p style="font-size: 12px; color: #5f6368; margin-top: 25px;">You're receiving this because security alerts are enabled for your account.<br>Google LLC, 1600 Amphitheatre Parkway, Mountain View, CA 94043</p>
+    </div>
+</div>

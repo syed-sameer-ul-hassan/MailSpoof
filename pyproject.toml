@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mailspoof"
-version = "1.0.0"
+version = "1.2.0"
 description = "Professional Email Spoofing and Phishing Simulation Framework"
 readme = "README.md"
 license = {text = "Apache-2.0"}
@@ -22,6 +22,10 @@ keywords = [
     "social engineering",
     "cybersecurity",
     "email security",
+    "phishing awareness",
+    "attachment testing",
+    "email tracking",
+    "bulk phishing",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",

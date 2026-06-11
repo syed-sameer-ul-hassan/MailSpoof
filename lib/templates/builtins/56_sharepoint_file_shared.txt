@@ -1,0 +1,32 @@
+Name: SharePoint - File Shared With You
+Category: Document Phishing
+Severity: Medium
+From Email: no-reply@sharepoint-notifications.com
+From Name: SharePoint via Microsoft
+Subject: [Name] has shared a file with you
+Description: Simulates a Microsoft SharePoint file-sharing notification to test document phishing.
+
+Body:
+<div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff;">
+    <div style="background: #0078d4; padding: 15px 25px; display: flex; align-items: center;">
+        <span style="color: white; font-size: 18px; font-weight: 600;">Microsoft SharePoint</span>
+    </div>
+    <div style="padding: 30px; color: #323130;">
+        <div style="background: #f3f2f1; border-radius: 8px; padding: 20px; margin-bottom: 20px; display: flex; align-items: center;">
+            <div style="background: #0078d4; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold;">JS</div>
+            <div>
+                <strong>John Smith</strong> shared a file with you<br>
+                <span style="color: #605e5c; font-size: 13px;">{TODAY}</span>
+            </div>
+        </div>
+        <div style="border: 1px solid #edebe9; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+            <div style="font-size: 16px; font-weight: 600; color: #0078d4;">📊 Q3_Financial_Report_CONFIDENTIAL.xlsx</div>
+            <div style="color: #605e5c; font-size: 13px; margin-top: 5px;">Shared from Corporate SharePoint · 2.4 MB</div>
+        </div>
+        <p>John has given you access to view and comment on this document. Click the button below to open it in your browser.</p>
+        <div style="text-align: center; margin: 25px 0;">
+            <a href="http://localhost:8080/track" style="background-color: #0078d4; color: white; padding: 12px 28px; text-decoration: none; border-radius: 4px; font-weight: 600; display: inline-block;">Open Document</a>
+        </div>
+        <p style="font-size: 12px; color: #605e5c;">Microsoft Corporation | One Microsoft Way, Redmond, WA 98052</p>
+    </div>
+</div>

@@ -1,0 +1,29 @@
+Name: Amazon - Verify Your Account
+Category: Credential Harvesting
+Severity: High
+From Email: account-update@amazon-verify.com
+From Name: Amazon Customer Service
+Subject: Your Amazon account has been locked
+Description: Simulates an Amazon account lockout notice requiring verification.
+
+Body:
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff;">
+    <div style="background-color: #232F3E; padding: 15px 25px;">
+        <span style="color: #FF9900; font-size: 22px; font-weight: bold;">amazon</span>
+    </div>
+    <div style="padding: 30px; color: #333;">
+        <h2 style="color: #232F3E; border-bottom: 2px solid #FF9900; padding-bottom: 10px;">Important: Account Access Restricted</h2>
+        <p>Dear Customer,</p>
+        <p>We have noticed some suspicious activity associated with your Amazon account. To protect you, we have temporarily restricted access to your account.</p>
+        <div style="background: #fff3e0; border: 1px solid #FF9900; border-radius: 4px; padding: 15px; margin: 20px 0;">
+            <strong>Account Status:</strong> <span style="color: #d32f2f;">Restricted</span><br>
+            <strong>Date Detected:</strong> {TODAY}<br>
+            <strong>Action Required:</strong> Verify your identity within 24 hours.
+        </div>
+        <p>Failure to verify your account within the deadline may result in permanent suspension of your account, including pending orders and gift card balances.</p>
+        <div style="text-align: center; margin: 25px 0;">
+            <a href="http://localhost:8080/track" style="background-color: #FF9900; color: #111; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">Verify My Account</a>
+        </div>
+        <p style="font-size: 12px; color: #888;">Amazon.com, Inc. | 410 Terry Avenue North, Seattle, WA 98109</p>
+    </div>
+</div>

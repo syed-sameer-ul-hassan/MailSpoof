@@ -1,0 +1,30 @@
+Name: DHL - Package Delivery Failed
+Category: Logistics Phishing
+Severity: Medium
+From Email: noreply@dhl-delivery.com
+From Name: DHL Express
+Subject: Package Delivery Failed - Action Required
+Description: Simulates a DHL delivery failure notification to test user awareness of logistics phishing.
+
+Body:
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0;">
+    <div style="background-color: #FFCC00; padding: 20px; text-align: center;">
+        <span style="font-size: 28px; font-weight: bold; color: #D40511;">DHL</span>
+        <span style="font-size: 16px; color: #333; margin-left: 10px;">EXPRESS</span>
+    </div>
+    <div style="padding: 25px; color: #333;">
+        <h2 style="color: #D40511; margin-top: 0;">Delivery Attempt Failed</h2>
+        <p>Dear Customer,</p>
+        <p>We attempted to deliver your parcel today but were unable to complete the delivery. Your package is now being held at our local facility.</p>
+        <table style="width: 100%; border-collapse: collapse; background: #f9f9f9; margin: 20px 0;">
+            <tr><td style="padding: 8px; font-weight: bold;">Tracking Number:</td><td style="padding: 8px;">1234567890</td></tr>
+            <tr><td style="padding: 8px; font-weight: bold;">Status:</td><td style="padding: 8px; color: #D40511;">Delivery Failed</td></tr>
+            <tr><td style="padding: 8px; font-weight: bold;">Date:</td><td style="padding: 8px;">{TODAY}</td></tr>
+        </table>
+        <p>To reschedule your delivery or arrange pickup, please update your delivery preferences within <strong>48 hours</strong> or your package will be returned to the sender.</p>
+        <div style="text-align: center; margin: 25px 0;">
+            <a href="http://localhost:8080/track" style="background-color: #D40511; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-weight: bold;">Reschedule Delivery</a>
+        </div>
+        <p style="font-size: 12px; color: #777;">DHL Express | Connecting People. Improving Lives.</p>
+    </div>
+</div>

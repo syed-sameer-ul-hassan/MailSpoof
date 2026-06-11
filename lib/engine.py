@@ -4,10 +4,13 @@ import smtplib
 import time
 import re
 import html
+import os
 from datetime import datetime
 from email.header import Header
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
 from email.utils import formatdate, make_msgid
 
 from lib.core import Config, Scenario, TestResult
@@ -61,15 +64,21 @@ def build_mime_email(
     scenario_name: str = "Custom",
     category: str = "Custom Test",
     severity: str = "N/A",
-    version: str = "1.1.0",
+    version: str = "1.2.0",
+    attachments: list[str] = None,
+    headers: dict[str, str] = None,
 ) -> str:
-    msg = MIMEMultipart("alternative")
+    msg = MIMEMultipart("mixed") if attachments else MIMEMultipart("alternative")
     msg["From"] = f"{from_name} <{from_email}>"
     msg["To"] = target
     msg["Subject"] = Header(subject, "utf-8")
     msg["Date"] = formatdate(localtime=True)
     domain = from_email.split("@")[1] if "@" in from_email else "localhost"
     msg["Message-ID"] = make_msgid(domain=domain)
+
+    if headers:
+        for k, v in headers.items():
+            msg[k] = v
 
     is_html = "<html" in body.lower()
 
@@ -83,8 +92,30 @@ def build_mime_email(
     full_plain = plain_body + _disclaimer_text(scenario_name, category, severity, version)
     full_html = html_body + _disclaimer_html(scenario_name, category, severity, version)
 
-    msg.attach(MIMEText(full_plain, "plain", "utf-8"))
-    msg.attach(MIMEText(full_html, "html", "utf-8"))
+    if attachments:
+        alt_part = MIMEMultipart("alternative")
+        alt_part.attach(MIMEText(full_plain, "plain", "utf-8"))
+        alt_part.attach(MIMEText(full_html, "html", "utf-8"))
+        msg.attach(alt_part)
+        
+        for filepath in attachments:
+            if not os.path.isfile(filepath):
+                print(f"{R}[!] Attachment not found: {filepath}{D}")
+                continue
+            try:
+                with open(filepath, "rb") as f:
+                    part = MIMEBase("application", "octet-stream")
+                    part.set_payload(f.read())
+                encoders.encode_base64(part)
+                filename = os.path.basename(filepath)
+                part.add_header("Content-Disposition", f"attachment; filename={filename}")
+                msg.attach(part)
+            except Exception as exc:
+                print(f"{R}[!] Failed to attach {filepath}: {exc}{D}")
+    else:
+        msg.attach(MIMEText(full_plain, "plain", "utf-8"))
+        msg.attach(MIMEText(full_html, "html", "utf-8"))
+
     return msg.as_string()
 
 def _explain_smtp_error(exc: Exception) -> str:
@@ -183,6 +214,8 @@ def run_scenario(
     smtp_pass: str = "",
     use_tls: bool = False,
     verbose: bool = False,
+    attachments: list[str] = None,
+    headers: dict[str, str] = None,
 ) -> bool:
     print(f"\n[TARGET]  {target}")
     print(f"[FROM]    {scenario.from_name} <{scenario.from_email}>")
@@ -198,7 +231,9 @@ def run_scenario(
         scenario_name=scenario.name,
         category=scenario.category,
         severity=scenario.severity,
-        version=config.data.get("version", "1.1.0"),
+        version=config.data.get("version", "1.2.0"),
+        attachments=attachments,
+        headers=headers,
     )
 
     print("[STATUS]  Connecting...", end=" ")
@@ -251,6 +286,8 @@ def run_custom(
     smtp_pass: str = "",
     use_tls: bool = False,
     verbose: bool = False,
+    attachments: list[str] = None,
+    headers: dict[str, str] = None,
 ) -> bool:
     print(f"\n[TARGET]  {target}")
     print(f"[FROM]    {from_name} <{from_email}>")
@@ -263,7 +300,9 @@ def run_custom(
         subject=subject,
         body=body,
         target=target,
-        version=config.data.get("version", "1.1.0"),
+        version=config.data.get("version", "1.2.0"),
+        attachments=attachments,
+        headers=headers,
     )
 
     print("[STATUS]  Connecting...", end=" ")

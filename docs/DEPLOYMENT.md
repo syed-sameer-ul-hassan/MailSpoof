@@ -14,7 +14,7 @@ flowchart TD
     B -->|PKGBUILD| E[Arch / Manjaro]
     B -->|Generic| F[Makefile / install.sh]
     B -->|Manual| G[venv + pip]
-    C --> C1[sudo dpkg -i mailspoof-v1.1.0.deb]
+    C --> C1[sudo dpkg -i mailspoof-v1.2.0.deb]
     D --> D1[rpmbuild -ba mailspoof.spec]
     E --> E1[makepkg -si]
     F --> F1[bash install.sh]
@@ -36,7 +36,7 @@ Supported: Debian, Ubuntu, Fedora, RHEL, CentOS, Rocky, AlmaLinux, Arch, Manjaro
 ## Method 2: Debian / Ubuntu (.deb)
 
 ```bash
-sudo dpkg -i mailspoof-v1.1.0.deb
+sudo dpkg -i mailspoof-v1.2.0.deb
 sudo apt-get install -f
 ```
 

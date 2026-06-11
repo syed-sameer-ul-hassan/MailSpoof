@@ -3,7 +3,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd .. && pwd)"
 BUILD_DIR="/tmp/mailspoof-deb"
-DEB_NAME="mailspoof-v1.1.0.deb"
+DEB_NAME="mailspoof-v1.2.0.deb"
 
 echo "[+] Cleaning old build..."
 rm -rf "$BUILD_DIR"
@@ -31,7 +31,7 @@ rm -rf "$BUILD_DIR/mailspoof/usr/share/mailspoof/venv" 2>/dev/null || true
 echo "[+] Writing control file..."
 cat > "$BUILD_DIR/mailspoof/DEBIAN/control" << 'EOF'
 Package: mailspoof
-Version: 1.1.0
+Version: 1.2.0
 Section: utils
 Priority: optional
 Architecture: all
@@ -79,7 +79,7 @@ exec "$PYTHON3" -m mailspoof "$@"
 WEOF
 chmod +x "$WRAPPER"
 
-echo "[+] MailSpoof v1.1.0 installed."
+echo "[+] MailSpoof v1.2.0 installed."
 EOF
 
 cat > "$BUILD_DIR/mailspoof/DEBIAN/prerm" << 'EOF'

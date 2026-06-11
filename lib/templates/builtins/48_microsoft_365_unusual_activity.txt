@@ -1,0 +1,35 @@
+Name: Microsoft 365 - Unusual Activity
+Category: Credential Harvesting
+Severity: High
+From Email: security@microsoft-alerts.com
+From Name: Microsoft 365 Security
+Subject: Action Required: Unusual sign-in activity
+Description: Simulates a Microsoft 365 security alert about a suspicious login from a foreign country.
+
+Body:
+<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; color: #333; border: 1px solid #e5e5e5;">
+    <div style="background-color: #0078d4; color: white; padding: 15px; font-size: 20px; font-weight: 600;">
+        Microsoft 365
+    </div>
+    <div style="padding: 20px;">
+        <h2 style="color: #d13438; margin-top: 0;">Unusual sign-in activity</h2>
+        <p>We detected something unusual about a recent sign-in to the Microsoft account linked to your email address.</p>
+        
+        <div style="background-color: #f3f2f1; padding: 15px; border-left: 4px solid #d13438; margin: 20px 0;">
+            <p style="margin: 0;"><strong>Sign-in details</strong><br>
+            Country/region: Russia/Moscow<br>
+            IP address: 194.58.112.24<br>
+            Date: {TODAY}<br>
+            Platform: Windows 10 / Firefox</p>
+        </div>
+        
+        <p>If this was you, you can safely ignore this email.</p>
+        <p>If you don't recognize this activity, your password might have been compromised. Please review your recent activity immediately.</p>
+        
+        <div style="text-align: left; margin: 30px 0;">
+            <a href="http://localhost:8080/track" style="background-color: #0078d4; color: white; padding: 10px 20px; text-decoration: none; border-radius: 2px; font-weight: 600;">Review recent activity</a>
+        </div>
+        
+        <p style="font-size: 12px; color: #666;">To opt out or change where you receive security notifications, <a href="#" style="color: #0078d4;">click here</a>.</p>
+    </div>
+</div>

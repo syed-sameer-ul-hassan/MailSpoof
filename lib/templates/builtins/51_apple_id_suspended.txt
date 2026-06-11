@@ -1,0 +1,26 @@
+Name: Apple ID - Account Suspended
+Category: Credential Harvesting
+Severity: High
+From Email: no-reply@apple-id-support.com
+From Name: Apple Support
+Subject: Your Apple ID has been suspended
+Description: Simulates an Apple account suspension notice to test credential harvesting awareness.
+
+Body:
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f5f5f7; padding: 20px;">
+    <div style="text-align: center; padding: 20px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 814 1000"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.5 135.4-317.3 269-317.3 71 0 130.5 46.8 175 46.8 42.3 0 109.2-49.9 188.2-49.9 30.3.1 106.4 4.5 171.7 55.5z"/></svg>
+    </div>
+    <div style="background: white; border-radius: 12px; padding: 30px; margin: 10px 0;">
+        <h1 style="text-align: center; font-size: 22px; color: #1d1d1f;">Your Apple ID has been suspended</h1>
+        <p style="color: #6e6e73; text-align: center;">To restore your account and continue using Apple services, you'll need to verify your information.</p>
+        <div style="background: #fff3cd; border-radius: 8px; padding: 15px; margin: 20px 0; border-left: 4px solid #ff9500;">
+            <strong>Reason:</strong> Unusual activity was detected. Your Apple ID was used to sign in from a new location on {TODAY}.
+        </div>
+        <p>Affected services: iCloud, App Store, Apple Music, FaceTime, iMessage</p>
+        <div style="text-align: center; margin: 25px 0;">
+            <a href="http://localhost:8080/track" style="background-color: #0071e3; color: white; padding: 14px 32px; text-decoration: none; border-radius: 20px; font-size: 15px; font-weight: 600;">Verify Apple ID</a>
+        </div>
+        <p style="font-size: 12px; color: #6e6e73; text-align: center;">Apple Inc. | One Apple Park Way, Cupertino, CA 95014</p>
+    </div>
+</div>

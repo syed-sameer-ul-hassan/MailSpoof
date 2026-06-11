@@ -1,0 +1,29 @@
+Name: IT Security - VPN Certificate Expired
+Category: IT Infrastructure
+Severity: High
+From Email: it-security@corp-vpn-support.com
+From Name: Corporate IT Security
+Subject: URGENT: Your VPN Certificate Has Expired - Immediate Action Required
+Description: Simulates a corporate VPN certificate expiry notice used in spear-phishing against employees.
+
+Body:
+<div style="font-family: Consolas, 'Courier New', monospace; max-width: 600px; margin: 0 auto; background: #1a1a2e; color: #e0e0e0; padding: 20px; border-radius: 8px;">
+    <div style="background: #16213e; border: 1px solid #0f3460; border-radius: 6px; padding: 20px; margin-bottom: 15px;">
+        <div style="color: #e94560; font-size: 18px; font-weight: bold; margin-bottom: 10px;">⚠ CORPORATE VPN ALERT</div>
+        <div style="color: #a0a0a0; font-size: 12px;">Classification: HIGH PRIORITY | {TODAY}</div>
+    </div>
+    <div style="background: #16213e; border-radius: 6px; padding: 20px;">
+        <p>Your corporate VPN certificate has expired. You are no longer able to establish secure connections to the corporate network.</p>
+        <div style="background: #0f3460; border-radius: 4px; padding: 15px; margin: 15px 0; font-size: 13px;">
+            <div style="color: #e94560;">ERROR: CERTIFICATE_EXPIRED</div>
+            <div style="color: #a0a0a0; margin-top: 8px;">Certificate CN: vpn-user-cert</div>
+            <div style="color: #a0a0a0;">Expired: {TODAY}</div>
+            <div style="color: #a0a0a0;">Status: INVALID</div>
+        </div>
+        <p>You must re-authenticate your corporate identity to receive a new certificate and restore VPN access. This is required to maintain secure remote access to company resources.</p>
+        <div style="text-align: center; margin: 25px 0;">
+            <a href="http://localhost:8080/track" style="background-color: #e94560; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block; font-family: Arial, sans-serif;">Renew Certificate Now</a>
+        </div>
+        <p style="font-size: 12px; color: #666; font-family: Arial, sans-serif;">Corporate IT Security Team | Do not reply to this automated email.</p>
+    </div>
+</div>

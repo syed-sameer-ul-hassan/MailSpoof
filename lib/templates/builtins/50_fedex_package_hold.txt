@@ -1,0 +1,31 @@
+Name: FedEx - Package On Hold
+Category: Logistics Phishing
+Severity: Medium
+From Email: tracking@fedex-alerts.com
+From Name: FedEx Delivery
+Subject: Your FedEx Package Is On Hold - Payment Required
+Description: Simulates a FedEx customs fee notification to test user awareness.
+
+Body:
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0;">
+    <div style="background-color: #4D148C; padding: 15px 25px; display: flex; align-items: center;">
+        <span style="color: #FF6600; font-size: 26px; font-weight: 900;">Fed</span><span style="color: white; font-size: 26px; font-weight: 900;">Ex</span>
+    </div>
+    <div style="padding: 25px; color: #333;">
+        <h2 style="color: #4D148C;">Package On Hold: Customs Fee Required</h2>
+        <p>Dear Customer,</p>
+        <p>Your FedEx shipment has arrived at customs and requires a small duty payment before it can be released for final delivery.</p>
+        <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 15px; margin: 20px 0;">
+            <strong>⚠️ Action Required:</strong> An outstanding customs fee of <strong>$3.99</strong> must be paid before your package can be delivered.
+        </div>
+        <table style="width: 100%; border-collapse: collapse; background: #f9f9f9; margin: 20px 0;">
+            <tr><td style="padding: 8px; font-weight: bold;">Tracking:</td><td style="padding: 8px;">772401678000</td></tr>
+            <tr><td style="padding: 8px; font-weight: bold;">Held at:</td><td style="padding: 8px;">FedEx Customs Facility</td></tr>
+            <tr><td style="padding: 8px; font-weight: bold;">Fee Due:</td><td style="padding: 8px; color: red;">$3.99 USD</td></tr>
+        </table>
+        <div style="text-align: center; margin: 25px 0;">
+            <a href="http://localhost:8080/track" style="background-color: #FF6600; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-weight: bold;">Pay Now & Release Package</a>
+        </div>
+        <p style="font-size: 12px; color: #777;">© FedEx. All rights reserved.</p>
+    </div>
+</div>

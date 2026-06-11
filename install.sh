@@ -46,6 +46,11 @@ install_shortcut() {
     local icon_src="$SCRIPT_DIR/assets/icon.svg"
     local desktop_src="$SCRIPT_DIR/mailspoof.desktop"
 
+    if [[ "$PLATFORM" == "macos" ]] || [[ "$PLATFORM" == "termux" ]]; then
+        echo "[~] Skipping launcher install (not supported on $PLATFORM)."
+        return
+    fi
+
     if [[ ! -f "$icon_src" ]] || [[ ! -f "$desktop_src" ]]; then
         echo "[~] Skipping launcher install (icon or desktop file missing)."
         return
@@ -84,7 +89,7 @@ print_banner() {
     echo " ▀█  ██  █▀   ██   █▀  █▀ ███▄ ▄███████▀  ▄███▀    ▀█████▀   ▀█████▀   ███"
     echo "                                  ."
     echo ""
-    echo "      Professional Email Security Assessment v1.1.0"
+    echo "      Professional Email Security Assessment v1.2.0"
     echo "      Platform: $PLATFORM"
     [[ "$PLATFORM" == "linux" ]] && echo "      Distro:   $DISTRO"
     echo ""
@@ -155,7 +160,7 @@ install_system_packages() {
                 fi
             elif [[ "$PLATFORM" == "termux" ]]; then
                 echo "    Using pkg..."
-                pkg install -y python python-pip
+                pkg install -y python
             else
                 echo "[!] Unknown distro: $DISTRO"
                 echo "    Please install manually: python3, python3-venv (or python3-virtualenv), python3-pip"
@@ -181,14 +186,20 @@ check_python() {
 install_deps() {
     echo "[+] Installing MailSpoof via pip..."
     local scope="$1"
+    
+    local pip_flags=""
+    if "$PYTHON" -m pip help install 2>/dev/null | grep -q "break-system-packages"; then
+        pip_flags="--break-system-packages"
+    fi
+
     if [[ "$scope" == "system" ]]; then
-        if [[ $(id -u) -eq 0 ]]; then
-            (cd "$SCRIPT_DIR" && "$PYTHON" -m pip install --upgrade pip && "$PYTHON" -m pip install .)
+        if [[ $(id -u) -eq 0 ]] || [[ "$PLATFORM" == "termux" ]] || [[ "$PLATFORM" == "macos" ]]; then
+            (cd "$SCRIPT_DIR" && "$PYTHON" -m pip install --upgrade pip $pip_flags && "$PYTHON" -m pip install $pip_flags .)
         else
-            (cd "$SCRIPT_DIR" && sudo "$PYTHON" -m pip install --upgrade pip && sudo "$PYTHON" -m pip install .)
+            (cd "$SCRIPT_DIR" && sudo "$PYTHON" -m pip install --upgrade pip $pip_flags && sudo "$PYTHON" -m pip install $pip_flags .)
         fi
     else
-        (cd "$SCRIPT_DIR" && "$PYTHON" -m pip install --upgrade pip && "$PYTHON" -m pip install --user .)
+        (cd "$SCRIPT_DIR" && "$PYTHON" -m pip install --upgrade pip $pip_flags && "$PYTHON" -m pip install --user $pip_flags .)
     fi
 }
 
@@ -230,10 +241,20 @@ main() {
 
     echo ""
     echo "Choose install location:"
-    echo "  1) System-wide  ($INSTALL_DIR/mailspoof)  [requires sudo]"
+    if [[ "$PLATFORM" == "macos" ]] || [[ "$PLATFORM" == "termux" ]]; then
+        echo "  1) System-wide  ($INSTALL_DIR/mailspoof)"
+    else
+        echo "  1) System-wide  ($INSTALL_DIR/mailspoof)  [requires sudo]"
+    fi
     echo "  2) User only    ($USER_INSTALL_DIR/mailspoof)"
     echo ""
-    read -rp "Enter choice [1-2] (default: 2): " choice
+    if [ -t 0 ]; then
+        read -rp "Enter choice [1-2] (default: 2): " choice || choice=2
+    elif [ -c /dev/tty ]; then
+        read -rp "Enter choice [1-2] (default: 2): " choice </dev/tty || choice=2
+    else
+        choice=2
+    fi
     choice=${choice:-2}
 
     if [[ "$choice" == "1" ]]; then

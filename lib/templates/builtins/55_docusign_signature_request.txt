@@ -1,0 +1,28 @@
+Name: DocuSign - Document Ready for Signature
+Category: Document Phishing
+Severity: Medium
+From Email: dse_NA3@docusign.net.phishing-test.com
+From Name: DocuSign via MailSpoof Test
+Subject: Your document is ready for signature
+Description: Simulates a DocuSign document-pending notification to test document phishing awareness.
+
+Body:
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff; border: 1px solid #e0e0e0;">
+    <div style="background: #26427a; padding: 20px; text-align: center;">
+        <span style="color: white; font-size: 24px; font-weight: bold;">DocuSign</span>
+        <span style="color: #7cb8f4; font-size: 14px; display: block; margin-top: 4px;">Envelope Notification</span>
+    </div>
+    <div style="padding: 30px; color: #333;">
+        <p>Please review and sign the document sent to you.</p>
+        <div style="background: #f0f4ff; border-left: 4px solid #26427a; border-radius: 4px; padding: 20px; margin: 20px 0;">
+            <strong>📄 Document:</strong> Employment_Contract_Q3_{TODAY}.pdf<br>
+            <strong>From:</strong> Legal Department<br>
+            <strong>Deadline:</strong> 48 hours from receipt
+        </div>
+        <p>By signing this document, you are confirming your acknowledgment and agreement to its contents. This is a legally binding digital signature.</p>
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="http://localhost:8080/track" style="background-color: #26427a; color: white; padding: 14px 36px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px; display: inline-block;">REVIEW DOCUMENT</a>
+        </div>
+        <p style="font-size: 12px; color: #888;">Do Not Share This Email — It contains a link for signing. This link is intended for the recipient only.<br>Powered by DocuSign | www.docusign.com</p>
+    </div>
+</div>

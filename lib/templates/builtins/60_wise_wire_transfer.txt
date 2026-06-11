@@ -1,0 +1,43 @@
+Name: Wise - Wire Transfer Confirmation
+Category: Financial Phishing
+Severity: Critical
+From Email: transfers@wise-notifications.com
+From Name: Wise (formerly TransferWise)
+Subject: You sent a transfer of $8,200.00 to a new recipient
+Description: Simulates a Wise wire transfer confirmation to test financial alert awareness.
+
+Body:
+<div style="font-family: Inter, 'Source Sans Pro', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff;">
+    <div style="background: #00B9A5; padding: 20px 25px;">
+        <span style="color: white; font-size: 22px; font-weight: 700;">Wise</span>
+    </div>
+    <div style="padding: 30px; color: #2d2d2d;">
+        <h2 style="margin-top: 0; color: #2d2d2d;">Transfer sent</h2>
+        <p>You have sent a transfer to a <strong style="color: #e36b00;">new recipient</strong>. If this wasn't you, please secure your account immediately.</p>
+        <div style="border: 1px solid #e8e8e8; border-radius: 8px; padding: 20px; margin: 20px 0;">
+            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
+                <span style="color: #757575;">You sent</span>
+                <strong style="color: #d32f2f; font-size: 20px;">$8,200.00 USD</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
+                <span style="color: #757575;">Recipient gets</span>
+                <strong>€7,621.40 EUR</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
+                <span style="color: #757575;">To</span>
+                <strong>James Williams (NEW RECIPIENT)</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 10px 0;">
+                <span style="color: #757575;">Date</span>
+                <strong>{TODAY}</strong>
+            </div>
+        </div>
+        <div style="background: #fff3e0; border-left: 4px solid #e36b00; border-radius: 4px; padding: 15px; margin: 15px 0;">
+            ⚠️ <strong>First-time transfer to this recipient.</strong> If you did not authorize this, your account may be compromised.
+        </div>
+        <div style="text-align: center; margin: 25px 0;">
+            <a href="http://localhost:8080/track" style="background-color: #d32f2f; color: white; padding: 14px 36px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; font-size: 16px;">I didn't do this - Secure Account</a>
+        </div>
+        <p style="font-size: 12px; color: #757575;">Wise | 6 Handyside Street, London, N1C 4AY, United Kingdom</p>
+    </div>
+</div>

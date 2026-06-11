@@ -1,0 +1,32 @@
+Name: Office 365 - Email Quota Exceeded
+Category: Credential Harvesting
+Severity: Medium
+From Email: postmaster@o365-storage-alerts.com
+From Name: Microsoft Office 365
+Subject: Your mailbox is almost full - Action needed
+Description: Simulates an Office 365 mailbox quota warning to test credential-harvesting awareness.
+
+Body:
+<div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff;">
+    <div style="background: #0078d4; padding: 15px 25px;">
+        <span style="color: white; font-size: 18px; font-weight: 600;">Microsoft 365</span>
+    </div>
+    <div style="padding: 30px; color: #323130;">
+        <h2 style="margin-top: 0;">Your mailbox is almost full</h2>
+        <p>Your mailbox has reached <strong>95%</strong> of its storage quota. You are no longer able to send or receive email until you free up space or upgrade your plan.</p>
+        <div style="background: #f3f2f1; border-radius: 6px; padding: 15px; margin: 20px 0;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="color: #605e5c;">Storage used:</span>
+                <strong style="color: #d13438;">47.5 GB / 50 GB (95%)</strong>
+            </div>
+            <div style="background: #e1dfdd; border-radius: 4px; height: 8px; overflow: hidden;">
+                <div style="background: #d13438; width: 95%; height: 100%;"></div>
+            </div>
+        </div>
+        <p>To continue using your email without interruption, please sign in to manage your storage and remove unnecessary items.</p>
+        <div style="text-align: center; margin: 25px 0;">
+            <a href="http://localhost:8080/track" style="background-color: #0078d4; color: white; padding: 12px 28px; text-decoration: none; border-radius: 4px; font-weight: 600; display: inline-block;">Manage Storage</a>
+        </div>
+        <p style="font-size: 12px; color: #605e5c;">Microsoft Corporation | One Microsoft Way, Redmond, WA 98052</p>
+    </div>
+</div>

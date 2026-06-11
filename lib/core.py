@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 __author__ = "Syed Sameer Ul Hassan"
 __license__ = "Apache-2.0"
 

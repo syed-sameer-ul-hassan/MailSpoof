@@ -1,0 +1,33 @@
+Name: Zoom - Upcoming Meeting Invitation
+Category: Communication Platform
+Severity: Low
+From Email: no-reply@zoom-meetings.com
+From Name: Zoom Video Communications
+Subject: You have been invited to a Zoom meeting
+Description: Simulates a Zoom meeting invitation to test user engagement with meeting platform phishing.
+
+Body:
+<div style="font-family: Lato, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f8f8f8; padding: 20px;">
+    <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <div style="background: #2D8CFF; padding: 20px; text-align: center;">
+            <span style="color: white; font-size: 26px; font-weight: bold;">zoom</span>
+        </div>
+        <div style="padding: 30px; color: #333;">
+            <h2 style="color: #2D8CFF; margin-top: 0;">You have been invited to a Zoom Meeting</h2>
+            <p><strong>John Smith</strong> is inviting you to a scheduled Zoom meeting.</p>
+            <div style="background: #f0f7ff; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                <div style="font-size: 16px; font-weight: bold; color: #333; margin-bottom: 12px;">📅 Meeting Details</div>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr><td style="padding: 6px; color: #666; width: 35%;">Topic:</td><td style="padding: 6px; font-weight: 600;">Q3 Security Review - All Staff</td></tr>
+                    <tr><td style="padding: 6px; color: #666;">Time:</td><td style="padding: 6px;">{TODAY} 10:00 AM (GMT)</td></tr>
+                    <tr><td style="padding: 6px; color: #666;">Meeting ID:</td><td style="padding: 6px;">819 4821 6594</td></tr>
+                    <tr><td style="padding: 6px; color: #666;">Passcode:</td><td style="padding: 6px;">847291</td></tr>
+                </table>
+            </div>
+            <div style="text-align: center; margin: 25px 0;">
+                <a href="http://localhost:8080/track" style="background-color: #2D8CFF; color: white; padding: 14px 36px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; font-size: 16px;">Join Meeting</a>
+            </div>
+            <p style="font-size: 12px; color: #888;">Zoom Video Communications, Inc. | 55 Almaden Blvd, Suite 600, San Jose, CA 95113</p>
+        </div>
+    </div>
+</div>

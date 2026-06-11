@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  mailspoof:
+    build: .
+    volumes:
+      - ~/.mailspoof:/root/.mailspoof
+    network_mode: "host"
+    command: ["server", "--port", "2525"]

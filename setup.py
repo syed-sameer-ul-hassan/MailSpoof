@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="mailspoof",
-    version="1.1.0",
+    version="1.2.0",
     author="Syed Sameer Ul Hassan",
     description="Professional Email Spoofing and Phishing Simulation Framework",
     long_description=long_description,

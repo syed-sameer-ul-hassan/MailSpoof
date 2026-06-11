@@ -6,11 +6,54 @@ import socket
 import smtplib
 import sys
 import threading
+import http.server
+import json
+from urllib.parse import urlparse, parse_qs
 from datetime import datetime
 from typing import List
 
-from lib.core import Config, LOG_FILE, __version__
+from lib.core import Config, LOG_FILE, CONFIG_DIR, __version__
 from lib.banner import print_server_banner
+
+TRACKING_LOG_FILE = CONFIG_DIR / "tracking.log"
+
+class TrackingHandler(http.server.BaseHTTPRequestHandler):
+    def log_message(self, format, *args):
+        pass # Suppress default logging
+
+    def do_GET(self):
+        parsed = urlparse(self.path)
+        if parsed.path.startswith("/track"):
+            qs = parse_qs(parsed.query)
+            target = qs.get("t", [""])[0]
+            sid = qs.get("id", [""])[0]
+            if target:
+                ts = datetime.now().isoformat()
+                log_entry = json.dumps({
+                    "timestamp": ts,
+                    "target": target,
+                    "id": sid,
+                    "ip": self.client_address[0],
+                    "user_agent": self.headers.get('User-Agent', '')
+                })
+                try:
+                    with open(TRACKING_LOG_FILE, "a") as f:
+                        f.write(log_entry + "\n")
+                except Exception:
+                    pass
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'image/gif')
+            self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            self.send_header('Pragma', 'no-cache')
+            self.send_header('Expires', '0')
+            self.end_headers()
+            self.wfile.write(b'GIF89a\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;')
+            return
+        
+        self.send_response(404)
+        self.end_headers()
+
 
 class SMTPSession:
 
@@ -230,11 +273,17 @@ class SMTPServer:
             self._bind()
             signal.signal(signal.SIGINT, self._shutdown)
 
+            # Start HTTP tracking server
+            self.httpd = http.server.ThreadingHTTPServer(('0.0.0.0', 8080), TrackingHandler)
+            self.httpd_thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
+            self.httpd_thread.start()
+
             print_server_banner(
                 self.host,
                 self.port,
                 str(self.config.logger.handlers[0].baseFilename),
             )
+            print("  HTTP Tracking Server running on port 8080")
 
             self._serve()
 
@@ -248,6 +297,8 @@ class SMTPServer:
         finally:
             if hasattr(self, "sock"):
                 self.sock.close()
+            if hasattr(self, "httpd"):
+                self.httpd.shutdown()
 
     def start_background(self):
         try:
@@ -270,4 +321,6 @@ class SMTPServer:
         self.running = False
         if hasattr(self, "sock"):
             self.sock.close()
+        if hasattr(self, "httpd"):
+            self.httpd.shutdown()
         sys.exit(0)

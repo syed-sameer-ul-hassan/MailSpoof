@@ -86,7 +86,8 @@ def _build_parser() -> argparse.ArgumentParser:
 
     p_test = subparsers.add_parser("test", help="Run a built-in scenario by ID")
     p_test.add_argument("id", type=int)
-    p_test.add_argument("target")
+    p_test.add_argument("target", nargs="?", help="Target email address")
+    p_test.add_argument("--target-list", help="CSV file containing target email addresses")
     p_test.add_argument("--smtp-host", default="localhost")
     p_test.add_argument("--smtp-port", type=int, default=2525)
     p_test.add_argument("--smtp-user", default="")
@@ -94,6 +95,10 @@ def _build_parser() -> argparse.ArgumentParser:
     p_test.add_argument("--use-tls", action="store_true")
     p_test.add_argument("--profile", default="", help="Use named SMTP profile")
     p_test.add_argument("--verbose", action="store_true", help="Show detailed send stages")
+    p_test.add_argument("--attach", action="append", help="File to attach (can be used multiple times)")
+    p_test.add_argument("--reply-to", help="Custom Reply-To header")
+    p_test.add_argument("--x-mailer", help="Custom X-Mailer header")
+
     subparsers.add_parser("create", help="Create a custom template")
     subparsers.add_parser("-t", help="Alias for create")
     p_custom = subparsers.add_parser("custom", help="Run a fully custom spoofing test")
@@ -101,7 +106,8 @@ def _build_parser() -> argparse.ArgumentParser:
     p_custom.add_argument("--from-name", required=True)
     p_custom.add_argument("--subject", required=True)
     p_custom.add_argument("--body", required=True)
-    p_custom.add_argument("--target", required=True)
+    p_custom.add_argument("--target", required=False, help="Target email address")
+    p_custom.add_argument("--target-list", help="CSV file containing target email addresses")
     p_custom.add_argument("--smtp-host", default="localhost")
     p_custom.add_argument("--smtp-port", type=int, default=2525)
     p_custom.add_argument("--smtp-user", default="")
@@ -109,6 +115,9 @@ def _build_parser() -> argparse.ArgumentParser:
     p_custom.add_argument("--use-tls", action="store_true")
     p_custom.add_argument("--profile", default="", help="Use named SMTP profile")
     p_custom.add_argument("--verbose", action="store_true", help="Show detailed send stages")
+    p_custom.add_argument("--attach", action="append", help="File to attach (can be used multiple times)")
+    p_custom.add_argument("--reply-to", help="Custom Reply-To header")
+    p_custom.add_argument("--x-mailer", help="Custom X-Mailer header")
     p_logs = subparsers.add_parser("logs", help="View test logs")
     p_logs.add_argument("--lines", type=int, default=20)
     p_report = subparsers.add_parser("report", help="Generate assessment report")
@@ -144,6 +153,34 @@ def _cmd_server(args):
     server = SMTPServer(args.host, args.port, config)
     server.start()
 
+def _get_targets(args) -> list[str]:
+    targets = []
+    if getattr(args, "target", None):
+        targets.append(args.target)
+    if getattr(args, "target_list", None):
+        try:
+            import csv
+            with open(args.target_list, "r") as f:
+                reader = csv.reader(f)
+                for row in reader:
+                    if row and row[0]:
+                        targets.append(row[0].strip())
+        except Exception as exc:
+            print(f"{R}[!] Failed to read target list: {exc}{D}")
+            sys.exit(1)
+    if not targets:
+        print(f"{R}[!] No targets specified. Use --target or --target-list{D}")
+        sys.exit(1)
+    return targets
+
+def _get_headers(args) -> dict[str, str]:
+    headers = {}
+    if getattr(args, "reply_to", None):
+        headers["Reply-To"] = args.reply_to
+    if getattr(args, "x_mailer", None):
+        headers["X-Mailer"] = args.x_mailer
+    return headers
+
 def _cmd_test(args, config: Config):
     scenario = config.scenario_by_id(args.id)
     if not scenario:
@@ -151,26 +188,44 @@ def _cmd_test(args, config: Config):
         print(f"    Run 'mailspoof list' to see available IDs.")
         sys.exit(1)
     smtp_host, smtp_port, smtp_user, smtp_pass, use_tls = _resolve_smtp(args, config)
-    ok = run_scenario(
-        scenario, args.target, smtp_host, smtp_port, config,
-        smtp_user=smtp_user,
-        smtp_pass=smtp_pass,
-        use_tls=use_tls,
-        verbose=getattr(args, "verbose", False),
-    )
-    sys.exit(0 if ok else 1)
+    targets = _get_targets(args)
+    headers = _get_headers(args)
+    attachments = getattr(args, "attach", None)
+
+    all_ok = True
+    for t in targets:
+        ok = run_scenario(
+            scenario, t, smtp_host, smtp_port, config,
+            smtp_user=smtp_user,
+            smtp_pass=smtp_pass,
+            use_tls=use_tls,
+            verbose=getattr(args, "verbose", False),
+            attachments=attachments,
+            headers=headers,
+        )
+        if not ok: all_ok = False
+    sys.exit(0 if all_ok else 1)
 
 def _cmd_custom(args, config: Config):
     smtp_host, smtp_port, smtp_user, smtp_pass, use_tls = _resolve_smtp(args, config)
-    ok = run_custom(
-        args.from_email, args.from_name, args.subject, args.body,
-        args.target, smtp_host, smtp_port, config,
-        smtp_user=smtp_user,
-        smtp_pass=smtp_pass,
-        use_tls=use_tls,
-        verbose=getattr(args, "verbose", False),
-    )
-    sys.exit(0 if ok else 1)
+    targets = _get_targets(args)
+    headers = _get_headers(args)
+    attachments = getattr(args, "attach", None)
+
+    all_ok = True
+    for t in targets:
+        ok = run_custom(
+            args.from_email, args.from_name, args.subject, args.body,
+            t, smtp_host, smtp_port, config,
+            smtp_user=smtp_user,
+            smtp_pass=smtp_pass,
+            use_tls=use_tls,
+            verbose=getattr(args, "verbose", False),
+            attachments=attachments,
+            headers=headers,
+        )
+        if not ok: all_ok = False
+    sys.exit(0 if all_ok else 1)
 
 def _cmd_start(args, config: Config):
     if args.port <= 1024 and os.geteuid() != 0:
@@ -355,6 +410,17 @@ def _cmd_create(args, config: Config):
     custom_dir = TEMPLATES_DIR / "custom"
     custom_dir.mkdir(parents=True, exist_ok=True)
     out_path = custom_dir / f"{name.replace(' ', '_').lower()}.txt"
+    content = (
+        f"Name: {name}\n"
+        f"Category: {category}\n"
+        f"Severity: {severity}\n"
+        f"From Email: {from_email}\n"
+        f"From Name: {from_name}\n"
+        f"Subject: {subject}\n"
+        f"Description: {description}\n\n"
+        f"Body:\n{body}\n"
+    )
+
     out_path.write_text(content, encoding="utf-8")
     print(f"{G}[+] Template saved: {out_path}  (ID {next_id}){D}")
 
@@ -737,17 +803,5 @@ def main():
         _cmd_update()
     elif args.command == "uninstall":
         _cmd_uninstall()
-
-
-def main():
-    config = Config()
-    parser = _build_parser()
-    args = parser.parse_args()
-    if not args.command:
-        _cmd_help()
-        sys.exit(0)
-    _dispatch(args, config)
-
-
 if __name__ == "__main__":
     main()

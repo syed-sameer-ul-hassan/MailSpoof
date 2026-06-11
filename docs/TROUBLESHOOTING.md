@@ -148,5 +148,5 @@ mailspoof report --output my_report.csv --format csv
 
 ```bash
 sudo dpkg -r mailspoof
-sudo dpkg -i mailspoof-v1.1.0.deb
+sudo dpkg -i mailspoof-v1.2.0.deb
 ```

@@ -1,0 +1,22 @@
+Name: HR - Policy Update
+Category: Attachment Testing
+Severity: Medium
+From Email: hr@example.com
+From Name: Human Resources
+Subject: IMPORTANT: Q3 Corporate Policy Updates
+Description: Simulates an HR announcement regarding mandatory policy updates, designed to test attachment opening rates.
+
+Body:
+<div style="font-family: Helvetica, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+    <h2 style="color: #1f2937;">Corporate Policy Update - Q3</h2>
+    <p>Dear Colleague,</p>
+    <p>Please be advised that the Executive Team has finalized the new corporate policies for the upcoming quarter. These changes impact remote work guidelines, expense reporting, and mandatory training requirements.</p>
+    <p>You are required to review the attached document and acknowledge your understanding by the end of the week.</p>
+    <p><strong>Action Required:</strong></p>
+    <ol>
+        <li>Download and review the attached policy PDF.</li>
+        <li>Sign the acknowledgment form on the last page.</li>
+    </ol>
+    <p>If you have any questions, please reach out to your HR representative.</p>
+    <p>Best regards,<br><strong>Human Resources Department</strong></p>
+</div>

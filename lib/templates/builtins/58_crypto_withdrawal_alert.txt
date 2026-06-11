@@ -1,0 +1,43 @@
+Name: Crypto Wallet - Suspicious Withdrawal
+Category: Financial Phishing
+Severity: Critical
+From Email: no-reply@coinbase-security.com
+From Name: Coinbase Security
+Subject: A withdrawal of $2,500 was initiated from your account
+Description: Simulates a cryptocurrency withdrawal alert to test user response to urgent financial notifications.
+
+Body:
+<div style="font-family: Inter, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #05060A; color: #e0e0e0; border-radius: 12px; overflow: hidden;">
+    <div style="background: #0052FF; padding: 20px 25px; display: flex; align-items: center;">
+        <span style="color: white; font-size: 22px; font-weight: bold;">Coinbase</span>
+    </div>
+    <div style="padding: 30px;">
+        <div style="background: #1a0000; border: 1px solid #ff4444; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+            <div style="color: #ff4444; font-size: 18px; font-weight: bold; margin-bottom: 8px;">🚨 Withdrawal Alert</div>
+            <p style="margin: 0; color: #ccc;">A withdrawal request has been initiated from your Coinbase account.</p>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <tr style="border-bottom: 1px solid #333;">
+                <td style="padding: 12px 0; color: #888;">Amount</td>
+                <td style="padding: 12px 0; text-align: right; color: #ff4444; font-size: 20px; font-weight: bold;">$2,500.00 USD</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #333;">
+                <td style="padding: 12px 0; color: #888;">Destination</td>
+                <td style="padding: 12px 0; text-align: right; font-family: monospace; font-size: 12px;">3FZbgi29...xkP2</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #333;">
+                <td style="padding: 12px 0; color: #888;">Date</td>
+                <td style="padding: 12px 0; text-align: right;">{TODAY}</td>
+            </tr>
+            <tr>
+                <td style="padding: 12px 0; color: #888;">Status</td>
+                <td style="padding: 12px 0; text-align: right; color: #ffa500;">⏳ Pending</td>
+            </tr>
+        </table>
+        <p>If you did not authorize this withdrawal, you must act immediately. Withdrawals are processed within 30 minutes and cannot be reversed once confirmed.</p>
+        <div style="text-align: center; margin: 25px 0;">
+            <a href="http://localhost:8080/track" style="background-color: #0052FF; color: white; padding: 14px 36px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Cancel Withdrawal Now</a>
+        </div>
+        <p style="font-size: 12px; color: #555;">Coinbase Global, Inc. | 248 3rd St #434, Oakland, CA 94607</p>
+    </div>
+</div>

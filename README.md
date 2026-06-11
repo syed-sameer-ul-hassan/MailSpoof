@@ -58,14 +58,19 @@
 ## Features
 
 - **Built-in SMTP Server** — Multi-threaded raw-socket SMTP server with optional MX relay for local testing
-- **Phishing Simulation Scenarios** — 45+ pre-built HTML email templates across social media, SaaS, financial, developer platforms, and BEC
+- **HTTP Tracking Server** — Embedded HTTP server on port 8080 for open/pixel tracking of sent emails
+- **62 Phishing Templates** — 62 pre-built HTML email templates across social media, SaaS, financial, logistics, developer platforms, and BEC
 - **Custom Template Engine** — Create, edit, preview, filter, and remove your own phishing email templates interactively
 - **External SMTP Relay** — Send via Gmail, Outlook, SendGrid, or any authenticated SMTP server with TLS/SSL support
 - **SMTP Profile Management** — Save and reuse named SMTP relay configurations
+- **Bulk Target Lists** — Send to hundreds of targets via `--target-list targets.csv` in a single command
+- **Attachment Payloads** — Attach files (PDFs, DOCX, etc.) to emails via `--attach` to test gateway filtering
+- **Advanced Headers** — Inject custom `--reply-to` and `--x-mailer` headers for advanced bypass testing
 - **Audit Logging** — Every test is logged with timestamps, success/failure, error details, and server details
 - **JSON & CSV Reports** — Generate assessment reports with success rates, per-test errors, and security recommendations
 - **Template Preview** — Preview HTML/text content before sending
 - **Template Filtering** — Filter templates by name, category, tags, or content
+- **Docker Support** — Deploy instantly on any VPS using `docker-compose up`
 - **Desktop Launcher** — `.desktop` entry with icon for Linux application menus (auto-installed)
 - **Cross-Platform** — Works on Linux, macOS, and Termux (Android)
 - **Apache-2.0 Licensed** — Free for commercial and personal use
@@ -199,7 +204,7 @@ chmod +x mailspoof
 Or install via Debian package:
 
 ```bash
-sudo dpkg -i mailspoof-v1.1.0.deb
+sudo dpkg -i mailspoof-v1.2.0.deb
 mailspoof --version
 ```
 
@@ -220,7 +225,7 @@ Supported: **Debian/Ubuntu**, **Fedora/RHEL/CentOS**, **Arch/Manjaro**, **macOS*
 ### Option 2: Debian / Ubuntu (.deb)
 
 ```bash
-sudo dpkg -i mailspoof-v1.1.0.deb
+sudo dpkg -i mailspoof-v1.2.0.deb
 sudo apt-get install -f
 ```
 
@@ -398,6 +403,30 @@ mailspoof custom \
   --verbose
 ```
 
+### Bulk Target List (CSV)
+
+```bash
+# targets.csv: one email per line
+mailspoof test 1 --target-list employees.csv --smtp-host smtp.gmail.com --smtp-port 587 --smtp-user user@gmail.com --smtp-pass APP_PASS --use-tls
+```
+
+### Email with Attachments
+
+```bash
+# Attach one or more files to test gateway filtering
+mailspoof test 7 target@company.com --attach report.pdf --attach policy.docx
+```
+
+### Advanced Header Injection
+
+```bash
+mailspoof custom --from-email ceo@company.com --from-name CEO \
+  --subject "Urgent" --body "See attached" \
+  --target finance@company.com \
+  --reply-to attacker@evil.com \
+  --x-mailer "Microsoft Outlook 16.0"
+```
+
 ### Use Saved SMTP Profiles
 
 ```bash
@@ -462,7 +491,7 @@ flowchart TD
 
 ## Email Spoofing Scenarios
 
-MailSpoof includes **45+ professionally crafted** HTML phishing simulation templates across multiple categories:
+MailSpoof includes **62 professionally crafted** HTML phishing simulation templates across multiple categories:
 
 | ID | Scenario | Category | Severity |
 |----|----------|----------|----------|
@@ -473,24 +502,28 @@ MailSpoof includes **45+ professionally crafted** HTML phishing simulation templ
 | 5 | PayPal Account Review | Financial | High |
 | 6 | HR Benefits Form Update | HR | High |
 | 9 | LinkedIn Security Verification | Social Media | High |
-| 10 | Facebook Policy Violation Review | Social Media | High |
 | 12 | Twitter/X Account Lock Notice | Social Media | High |
-| 14 | Slack Workspace Verification | SaaS | High |
-| 15 | Zoom Account Suspension Notice | SaaS | High |
 | 17 | GitHub OAuth Re-Authentication | Developer | High |
-| 18 | Salesforce MFA Reset | Developer | High |
-| 19 | Apple ID Locked Alert | Consumer | High |
 | 20 | AWS Root Access Alert | Cloud | Critical |
-| 24 | GitLab OAuth Token Renewal | Developer | High |
-| 25 | Bitbucket Access Review | Developer | Medium |
-| 26 | GitHub SSO Re-Verification | Developer | High |
-| 32 | Spotify Payment Verification | Consumer | Medium |
-| 33 | Netflix Account Verification | Consumer | Medium |
-| 38 | Meta Ads Payment Failure | Social Media | High |
-| 39 | Amazon Order Verification | Consumer | Medium |
-| 45 | Prime Video Payment Authorization | Consumer | Medium |
+| 46 | IT Helpdesk - Password Expiry | Credential Harvesting | High |
+| 47 | HR - Policy Update (Attachment) | Attachment Testing | Medium |
+| 48 | Microsoft 365 - Unusual Activity | Credential Harvesting | High |
+| 49 | DHL - Package Delivery Failed | Logistics Phishing | Medium |
+| 50 | FedEx - Package On Hold | Logistics Phishing | Medium |
+| 51 | Apple ID - Account Suspended | Credential Harvesting | High |
+| 52 | Google - Critical Security Alert | Credential Harvesting | High |
+| 53 | Amazon - Account Locked | Credential Harvesting | High |
+| 54 | Corporate VPN - Certificate Expired | IT Infrastructure | High |
+| 55 | DocuSign - Signature Request | Document Phishing | Medium |
+| 56 | SharePoint - File Shared With You | Document Phishing | Medium |
+| 57 | Zoom - Meeting Invitation | Communication Platform | Low |
+| 58 | Coinbase - Suspicious Withdrawal | Financial Phishing | Critical |
+| 59 | Office 365 - Mailbox Quota Exceeded | Credential Harvesting | Medium |
+| 60 | Wise - Wire Transfer Confirmation | Financial Phishing | Critical |
+| 61 | GitHub - SSH Key Added | Developer Platform | High |
+| 62 | New Device Login Alert | Device Alert | High |
 
-**Full catalog:** See [docs/SECURITY_SCENARIOS.md](docs/SECURITY_SCENARIOS.md) for all 45+ templates with descriptions.
+**Full catalog:** See [docs/SECURITY_SCENARIOS.md](docs/SECURITY_SCENARIOS.md) for all 62 templates.
 
 ---
 
@@ -586,16 +619,16 @@ MailSpoof/
 ├── lib/
 │   ├── banner.py       # Shared logo / banner helpers
 │   ├── core.py         # Configuration, data classes, scenarios, profiles
-│   ├── server.py       # Multi-threaded SMTP server with MX relay
-│   ├── engine.py       # Email crafting, delivery, error handling
+│   ├── server.py       # Multi-threaded SMTP + HTTP tracking server (port 8080)
+│   ├── engine.py       # Email crafting, attachments, delivery, error handling
 │   ├── audit.py        # Log viewer and report generator (JSON/CSV)
 │   └── cli.py          # Command-line interface
 ├── lib/templates/
-│   └── builtins/       # 45+ pre-built HTML phishing scenarios
+│   └── builtins/       # 62 pre-built HTML phishing scenarios
 ├── assets/
 │   └── icon.svg        # Application icon for desktop launcher
 ├── docs/
-│   ├── SECURITY_SCENARIOS.md   # Full 45+ template catalog
+│   ├── SECURITY_SCENARIOS.md   # Full 62 template catalog
 │   ├── TROUBLESHOOTING.md      # Delivery error fixes
 │   ├── DEPLOYMENT.md           # Deployment guide
 │   └── CHANGELOG.md            # Version history & release notes
@@ -603,30 +636,29 @@ MailSpoof/
 │   ├── build-deb.sh            # Debian package builder
 │   └── mailspoof-wrapper.sh    # System wrapper script
 ├── .github/
-│   ├── ISSUE_TEMPLATE/
-│   │   ├── bug_report.md         # Standard bug report template
-│   │   ├── bug_report_method.md  # Detailed reporting guide
-│   │   ├── feature_request.md   # Feature request template
-│   │   └── seo_optimization.md  # SEO optimization template
-│   ├── FUNDING.yml              # Sponsorship links
-│   └── dependabot.yml         # Dependency updates
-├── mailspoof           # Entry-point executable
-├── mailspoof.desktop   # Linux desktop launcher (auto-installed)
-├── install.sh          # Universal cross-platform installer
-├── uninstall.py        # Python uninstaller
-├── setup.py            # PyPI setuptools config
-├── pyproject.toml      # Modern Python packaging
-├── requirements.txt    # Python dependencies
-├── PKGBUILD            # Arch Linux package build
-├── mailspoof.spec      # Fedora/RHEL RPM spec
-├── Makefile            # Generic build & install
-├── SECURITY.md         # Security policy & responsible use
-├── CITATION.cff        # Citation metadata
-├── CODE_OF_CONDUCT.md  # Community guidelines
-├── CONTRIBUTING.md     # Contribution guidelines
-├── .gitignore          # Git ignore rules
-├── LICENSE             # Apache-2.0
-└── README.md           # This file
+│   ├── ISSUE_TEMPLATE/         # Bug/feature templates
+│   ├── FUNDING.yml             # Sponsorship links
+│   └── dependabot.yml          # Dependency updates
+├── Dockerfile              # Docker container definition
+├── docker-compose.yml      # Docker compose config
+├── mailspoof               # Entry-point executable
+├── mailspoof.desktop       # Linux desktop launcher (auto-installed)
+├── install.sh              # Universal cross-platform installer (Linux/macOS/Termux)
+├── install_termux.sh       # Dedicated Termux installer
+├── uninstall.py            # Python uninstaller
+├── setup.py                # PyPI setuptools config
+├── pyproject.toml          # Modern Python packaging
+├── requirements.txt        # Python dependencies
+├── PKGBUILD                # Arch Linux package build
+├── mailspoof.spec          # Fedora/RHEL RPM spec
+├── Makefile                # Generic build & install
+├── SECURITY.md             # Security policy & responsible use
+├── CITATION.cff            # Citation metadata
+├── CODE_OF_CONDUCT.md      # Community guidelines
+├── CONTRIBUTING.md         # Contribution guidelines
+├── .gitignore              # Git ignore rules
+├── LICENSE                 # Apache-2.0
+└── README.md               # This file
 ```
 
 ---
@@ -855,20 +887,21 @@ MailSpoof is designed for Unix-like systems. For native Windows:
 3. Use Git Bash or PowerShell
 4. Run `python mailspoof` instead of `./mailspoof`
 
-## Docker Installation (Conceptual)
+## Docker Deployment
 
-```dockerfile
-FROM python:3.11-slim
-WORKDIR /app
-COPY . .
-RUN pip install -r requirements.txt
-EXPOSE 2525
-ENTRYPOINT ["python", "mailspoof"]
-```
+MailSpoof includes a ready-to-use `Dockerfile` and `docker-compose.yml` for deployment on any VPS:
 
 ```bash
+# Build and start the SMTP + Tracking server
+docker-compose up -d
+```
+
+This mounts `~/.mailspoof` as a volume so all configs and templates persist.
+
+```bash
+# Or build and run manually
 docker build -t mailspoof .
-docker run -it --rm -p 2525:2525 mailspoof server --port 2525
+docker run -it --rm --network=host mailspoof server --port 2525
 ```
 
 ## Cloud Deployment
@@ -1073,6 +1106,10 @@ MailSpoof does not auto-rotate logs. Use `logrotate`:
 | Feature | MailSpoof | Gophish | Social-Engineer Toolkit |
 |---------|-----------|---------|------------------------|
 | Built-in SMTP | Yes | Yes | No |
+| HTTP Tracking Server | Yes | Yes | No |
+| Bulk CSV targets | Yes | Yes | No |
+| Email Attachments | Yes | No | No |
+| Docker support | Yes | Yes | No |
 | Custom templates | Yes | Yes | Yes |
 | Web dashboard | No | Yes | No |
 | Open source | Yes | Yes | Yes |
@@ -1095,7 +1132,7 @@ MailSpoof is legal when used for authorized security testing. Unauthorized use v
 
 ### Q: Does it support HTML emails?
 
-Currently, MailSpoof sends plain text only. HTML support may be added in future versions.
+Yes! MailSpoof automatically builds both `text/plain` and `text/html` multipart emails. All 62 built-in templates are fully styled HTML emails.
 
 ### Q: Can I schedule campaigns?
 
@@ -1118,7 +1155,7 @@ bash install.sh
 Or via `.deb`:
 
 ```bash
-sudo dpkg -i mailspoof-v1.1.0.deb
+sudo dpkg -i mailspoof-v1.2.0.deb
 ```
 
 ### Q: Where are templates stored?
@@ -1305,7 +1342,7 @@ sudo ufw allow out 25/tcp
 ### mailspoof list
 
 ```text
- MailSpoof Professional Email Security Assessment v1.1.0
+ MailSpoof Professional Email Security Assessment v1.2.0
 
 --- Available Templates ---
 
@@ -1321,7 +1358,7 @@ sudo ufw allow out 25/tcp
 ### mailspoof start
 
 ```text
- MailSpoof SMTP Server v1.1.0
+ MailSpoof SMTP Server v1.2.0
 
   Listening on 0.0.0.0:2525
   Logs: /home/user/.mailspoof/audit.log

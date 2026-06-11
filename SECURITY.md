@@ -8,8 +8,9 @@
 
 | Version | Supported | Status |
 |---------|-----------|--------|
-| 1.1.0   | Yes       | Stable |
-| 1.0.0   | No        | ~~Legacy~~ (upgrade recommended) |
+| 1.2.0   | Yes     | Stable (Current) |
+| 1.1.0   | Yes     | Stable (upgrade recommended) |
+| 1.0.0   | No      | ~~Legacy~~ (upgrade recommended) |
 
 ## Responsible Use
 
@@ -28,6 +29,7 @@ MailSpoof stores the following on your local machine:
 |----------------|----------|
 | `~/.mailspoof/config.json` | SMTP profiles, server settings |
 | `~/.mailspoof/audit.log` | Test logs (timestamp, target, result) |
+| `~/.mailspoof/tracking.log` | Open/click tracking events (HTTP server) |
 | `~/.mailspoof/reports/` | Generated assessment reports |
 | `~/.mailspoof/templates/custom/` | User-created phishing templates |
 

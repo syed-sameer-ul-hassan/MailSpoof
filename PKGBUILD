@@ -1,6 +1,6 @@
 
 pkgname=mailspoof
-pkgver=1.0.0
+pkgver=1.2.0
 pkgrel=1
 pkgdesc="Professional Email Spoofing and Phishing Simulation Framework"
 arch=('any')

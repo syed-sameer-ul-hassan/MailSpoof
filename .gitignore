@@ -61,5 +61,4 @@ node_modules/
 *.tmp
 *.temp
 
-release.sh
-RELEASE_NOTES.md
+myscrypts/
