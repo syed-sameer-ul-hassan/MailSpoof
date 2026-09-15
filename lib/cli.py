@@ -237,10 +237,23 @@ def _cmd_start(args, config: Config):
     print_banner()
     print_legal()
 
+    # Start with no relay
     server = SMTPServer(args.host, args.port, config)
     server.start_background()
     time.sleep(0.5)
-    print(f"\n{G}[+] SMTP server running on {args.host}:{args.port}{D}")
+
+    # Detect real device IP
+    import socket as _socket
+    try:
+        _s = _socket.socket(_socket.AF_INET, _socket.SOCK_DGRAM)
+        _s.connect(("8.8.8.8", 80))
+        _device_ip = _s.getsockname()[0]
+        _s.close()
+    except Exception:
+        _device_ip = "127.0.0.1"
+    args._device_ip = _device_ip
+
+    print(f"\n{G}[+] SMTP server running on {_device_ip}:{args.port}{D}")
 
     if args.smtp_host in ("localhost", "127.0.0.1"):
         print(f"\n{Y}[!] WARNING:{D} Direct MX relay usually fails.")
@@ -285,37 +298,67 @@ def _cmd_start(args, config: Config):
     if not subject:
         subject = _prompt_required(f"{Y}Subject{D}")
 
-    print(f"\n{C}--- SMTP Relay Settings ---{D}")
-    print(f"  {Y}Direct MX relay often fails (Gmail/Yahoo block IPs).{D}")
-    print(f"  Use an external SMTP server (Gmail, SendGrid, your own) for success.\n")
-
-    use_external = input(f"{Y}Use external SMTP relay? [y/N]: {D}").strip().lower()
+    # Auto-load or prompt relay
     smtp_user = ""
     smtp_pass = ""
-    use_tls = False
+    use_tls   = False
+    ext_host  = ""
+    ext_port  = 587
 
-    if use_external in ("y", "yes"):
-        ext_host = _prompt_required(f"{Y}SMTP host{D}")
-        ext_port_str = _prompt(f"{Y}SMTP port{D}", "587")
-        try:
-            ext_port = int(ext_port_str)
-        except ValueError:
-            ext_port = 587
-        args.smtp_host = ext_host
-        args.smtp_port = ext_port
+    _profiles = config.data.get("smtp_profiles", {})
+    _default  = _profiles.get("default")
 
-        smtp_user = _prompt(f"{Y}SMTP username{D}")
-        if smtp_user:
-            import getpass
-            smtp_pass = getpass.getpass(f"{Y}SMTP password: {D}")
+    if _default:
+        # Use saved default profile
+        ext_host  = _default.get("host", "")
+        ext_port  = int(_default.get("port", 587))
+        smtp_user = _default.get("user", "")
+        smtp_pass = _default.get("pass", "")
+        use_tls   = bool(_default.get("use_tls", True))
+        print(f"{G}[+] Using saved default SMTP profile: {smtp_user} via {ext_host}:{ext_port}{D}")
+        # Wire relay into server
+        server.relay_host = ext_host
+        server.relay_port = ext_port
+        server.relay_user = smtp_user
+        server.relay_pass = smtp_pass
+        server.relay_tls  = use_tls
+    else:
+        print(f"\n{C}--- SMTP Relay Settings ---{D}")
+        print(f"  {Y}Tip: Save a profile once with:{D}")
+        print(f"  mailspoof profile add default --host smtp.gmail.com --port 587 \\")
+        print(f"       --user you@gmail.com --pass \"app-password\" --use-tls\n")
 
-        tls_input = input(f"{Y}Use TLS/SSL? [Y/n]: {D}").strip().lower()
-        use_tls = tls_input in ("", "y", "yes")
+        use_external = input(f"{Y}Use external SMTP relay? [y/N]: {D}").strip().lower()
+
+        if use_external in ("y", "yes"):
+            ext_host = _prompt_required(f"{Y}SMTP host{D}")
+            ext_port_str = _prompt(f"{Y}SMTP port{D}", "587")
+            try:
+                ext_port = int(ext_port_str)
+            except ValueError:
+                ext_port = 587
+            args.smtp_host = ext_host
+            args.smtp_port = ext_port
+
+            smtp_user = _prompt(f"{Y}SMTP username{D}")
+            if smtp_user:
+                import getpass
+                smtp_pass = getpass.getpass(f"{Y}SMTP password: {D}")
+
+            tls_input = input(f"{Y}Use TLS/SSL? [Y/n]: {D}").strip().lower()
+            use_tls = tls_input in ("", "y", "yes")
+
+            # Reconfigure running server
+            server.relay_host = ext_host
+            server.relay_port = ext_port
+            server.relay_user = smtp_user
+            server.relay_pass = smtp_pass
+            server.relay_tls  = use_tls
 
     clear_screen()
     print_banner()
     print(f"\n{C}--- Choose Email Body Template ---{D}\n")
-    _cmd_list(config)
+    _cmd_list(args, config)
 
     sid_str = _prompt_required(f"{Y}Enter template ID{D}")
     try:
@@ -360,10 +403,14 @@ def _cmd_start(args, config: Config):
         source=scenario.source,
     )
 
+    # Route via device IP
+    _send_host = getattr(args, "_device_ip", "127.0.0.1")
     smtp_host, smtp_port, smtp_user, smtp_pass, use_tls = _resolve_smtp(args, config, smtp_user, smtp_pass, use_tls)
+
+    # Send through embedded server
     ok = run_scenario(
-        active, target, smtp_host, smtp_port, config,
-        smtp_user=smtp_user, smtp_pass=smtp_pass, use_tls=use_tls,
+        active, target, _send_host, args.port, config,
+        smtp_user="", smtp_pass="", use_tls=False,
         verbose=getattr(args, "verbose", False),
     )
     if ok:
@@ -426,8 +473,13 @@ def _cmd_create(args, config: Config):
 
     config._custom_templates = load_user_templates(start_id=len(config._builtin_templates) + 1)
 
-def _cmd_list(args, config: Config):
-    filter_text = getattr(args, "filter", "").lower().strip()
+def _cmd_list(args=None, config: Config | None = None):
+    if isinstance(args, Config) and config is None:
+        config = args
+        args = None
+    if config is None:
+        config = Config()
+    filter_text = getattr(args, "filter", "").lower().strip() if args else ""
     scenarios = config.scenarios()
     print(f"\n{C}--- Available Templates ---{D}\n")
     for s in scenarios:
@@ -451,6 +503,12 @@ def _resolve_smtp(args, config: Config, smtp_user: str = "", smtp_pass: str = ""
 
     profile_name = getattr(args, "profile", "") or ""
     profiles = config.data.get("smtp_profiles", {})
+
+    # Auto-use 'default' profile if no explicit profile or credentials given
+    if not profile_name and not smtp_user and not getattr(args, "smtp_user", ""):
+        if "default" in profiles:
+            profile_name = "default"
+
     if profile_name:
         profile = profiles.get(profile_name)
         if not profile:

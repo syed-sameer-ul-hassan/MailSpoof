@@ -55,6 +55,7 @@ class TrackingHandler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
 
 
+# Per-client SMTP session
 class SMTPSession:
 
     def __init__(self, client_sock, addr, server):
@@ -64,6 +65,7 @@ class SMTPSession:
         self.client_id = f"{addr[0]}:{addr[1]}"
         self.mail_from = ""
         self.rcpt_to: List[str] = []
+        # Last delivery error
         self.last_relay_error = ""
 
     def run(self):
@@ -181,6 +183,49 @@ class SMTPSession:
         return successes > 0
 
     def _relay(self, mail_from: str, rcpt_to: str, email_data: str, logger) -> bool:
+        # Normalize CRLF line endings
+        payload = re.sub(r"(?:\r\n|\r|\n)", "\r\n", email_data)
+
+        # Upstream relay path
+        relay_host = self.server.relay_host
+        if relay_host:
+            try:
+                relay_port = self.server.relay_port
+                relay_user = self.server.relay_user
+                relay_pass = self.server.relay_pass
+                relay_tls  = self.server.relay_tls
+
+                # SSL or STARTTLS conn
+                if relay_tls or relay_port == 465:
+                    conn = smtplib.SMTP_SSL(relay_host, relay_port, timeout=30)
+                else:
+                    conn = smtplib.SMTP(relay_host, relay_port, timeout=30)
+
+                with conn as server:
+                    server.ehlo_or_helo_if_needed()
+                    if not (relay_tls or relay_port == 465):
+                        try:
+                            # Upgrade to TLS
+                            server.starttls()
+                            server.ehlo_or_helo_if_needed()
+                        except Exception:
+                            pass
+                    # Authenticate relay user
+                    if relay_user and relay_pass:
+                        server.login(relay_user, relay_pass)
+                    server.sendmail(mail_from, [rcpt_to], payload.encode("utf-8"))
+                logger.info(f"Relayed to {rcpt_to} via upstream relay {relay_host}:{relay_port}")
+                return True
+            except smtplib.SMTPAuthenticationError as exc:
+                self.last_relay_error = f"Relay auth failed: {exc}"
+                logger.error(self.last_relay_error)
+                return False
+            except Exception as exc:
+                self.last_relay_error = f"Relay failed: {str(exc)[:200]}"
+                logger.error(self.last_relay_error)
+                return False
+
+        # Direct MX fallback
         try:
             domain = rcpt_to.split("@")[1]
         except IndexError:
@@ -196,9 +241,16 @@ class SMTPSession:
         for mx in mx_servers:
             try:
                 with smtplib.SMTP(mx, 25, timeout=15) as server:
-                    payload = f"From: {mail_from}\r\nTo: {rcpt_to}\r\n{email_data}"
+                    server.ehlo_or_helo_if_needed()
+                    if server.has_extn("starttls"):
+                        try:
+                            # Opportunistic TLS upgrade
+                            server.starttls()
+                            server.ehlo_or_helo_if_needed()
+                        except Exception:
+                            pass
                     server.sendmail(mail_from, [rcpt_to], payload.encode("utf-8"))
-                logger.info(f"Relayed to {rcpt_to} via {mx}")
+                logger.info(f"Relayed to {rcpt_to} via MX {mx}")
                 return True
             except smtplib.SMTPRecipientsRefused as exc:
                 err = str(exc)
@@ -239,12 +291,29 @@ class SMTPSession:
                 pass
         return working if working else [domain]
 
+# Listening SMTP server
 class SMTPServer:
 
-    def __init__(self, host: str, port: int, config: Config):
+    def __init__(
+        self,
+        host: str,
+        port: int,
+        config: Config,
+        # Upstream relay params
+        relay_host: str = "",
+        relay_port: int = 587,
+        relay_user: str = "",
+        relay_pass: str = "",
+        relay_tls: bool = True,
+    ):
         self.host = host
         self.port = port
         self.config = config
+        self.relay_host = relay_host
+        self.relay_port = relay_port
+        self.relay_user = relay_user
+        self.relay_pass = relay_pass
+        self.relay_tls = relay_tls
         self.running = False
         self.connections = 0
         self.emails_processed = 0

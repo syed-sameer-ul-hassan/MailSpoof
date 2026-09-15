@@ -6,6 +6,28 @@
 
 All notable changes to MailSpoof are documented here.
 
+## [1.2.1] - 2026-09-15
+
+### Added
+- **Upstream relay in SMTPServer** — `SMTPServer` now accepts `relay_host`, `relay_port`, `relay_user`, `relay_pass`, and `relay_tls` parameters. When configured, the embedded SMTP listener forwards all outbound mail through the relay instead of attempting direct MX delivery. This allows the built-in server to send reliably through Gmail, Brevo, SendGrid, or any authenticated SMTP service.
+- **Auto device IP detection** — `mailspoof start` auto-detects the machine's real network IP and binds the display and outbound connection to it, replacing the previous hardcoded `localhost`/`127.0.0.1` references that caused SSL version mismatches.
+- **Auto default profile loading** — Any command (`start`, `test`, `custom`) now silently loads the `default` SMTP profile if one is saved and no explicit credentials or `--profile` flag are given. No relay prompt is shown. Users run `mailspoof` with zero configuration after the one-time profile save.
+- **Silent relay reconfiguration** — When a `default` profile is saved, the already-running embedded SMTP server is live-reconfigured with the relay credentials at session start, so every email sent through `localhost:2525` that session is forwarded through the relay.
+
+### Fixed
+- **RFC 5322 duplicate header bug** — `lib/server.py` previously prepended `From:` and `To:` headers unconditionally, creating duplicate headers that caused strict MTAs to reject the message. The relay path now passes the MIME payload directly without re-adding headers already present.
+- **SSL wrong version error** — `SMTPServer` was initialized with `relay_host` set to `localhost` (the default from `args.smtp_host`), causing the server to attempt an SSL handshake with itself. Fixed by starting the server with no relay and wiring credentials only after the user confirms an external relay or a saved profile is found.
+- **`_cmd_list` TypeError** — Fixed a `TypeError` where `_cmd_list` was called with a positional argument it did not accept. Made the signature resilient to varying call sites.
+- **`uninstall.py` SyntaxError** — Restored the missing `def ask_yes_no(prompt):` function header that caused a `SyntaxError` on import.
+- **`formataddr` header construction** — `lib/engine.py` now uses `email.utils.formataddr` for RFC-compliant `Display Name <email>` header formatting, replacing manual string concatenation that produced malformed headers rejected by some MTAs.
+
+### Documentation
+- `README.md` — Removed stale installation banner, updated features list, rewrote interactive session flow diagram, rewrote SMTP relay section with relay pipeline diagram and supported relay table, rewrote SMTP profile workflow to show zero-config default profile pattern.
+- `TROUBLESHOOTING.md` — Added Cloudflare/SPF rejection section, SSL wrong version error, auto default profile setup steps, direct MX delivery explanation.
+- `CHANGELOG.md` — This entry.
+
+---
+
 ## [1.2.0] - 2026-06-11
 
 ### Added — Tracking & Features

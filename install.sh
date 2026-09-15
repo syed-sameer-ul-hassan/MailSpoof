@@ -58,6 +58,7 @@ install_shortcut() {
 
     if [[ "$scope" == "system" ]]; then
         local icon_dest="/usr/share/icons/hicolor/scalable/apps/mailspoof.svg"
+        local icon_dir="/usr/share/icons/hicolor"
         local desktop_dest="/usr/share/applications/mailspoof.desktop"
         echo "[+] Installing launcher (system)..."
         if [[ $(id -u) -eq 0 ]]; then
@@ -67,12 +68,34 @@ install_shortcut() {
             sudo install -Dm644 "$icon_src" "$icon_dest"
             sudo install -Dm644 "$desktop_src" "$desktop_dest"
         fi
+        # Refresh icon cache
+        if command -v gtk-update-icon-cache &>/dev/null; then
+            sudo gtk-update-icon-cache -f -t "$icon_dir" 2>/dev/null || true
+        elif command -v xdg-icon-resource &>/dev/null; then
+            xdg-icon-resource forceupdate --theme hicolor 2>/dev/null || true
+        fi
+        # Refresh desktop database
+        if command -v update-desktop-database &>/dev/null; then
+            sudo update-desktop-database /usr/share/applications 2>/dev/null || true
+        fi
     else
         local icon_dest="$HOME/.local/share/icons/hicolor/scalable/apps/mailspoof.svg"
+        local icon_dir="$HOME/.local/share/icons/hicolor"
         local desktop_dest="$HOME/.local/share/applications/mailspoof.desktop"
         echo "[+] Installing launcher (user)..."
+        mkdir -p "$(dirname "$icon_dest")" "$(dirname "$desktop_dest")"
         install -Dm644 "$icon_src" "$icon_dest"
         install -Dm644 "$desktop_src" "$desktop_dest"
+        # Refresh icon cache
+        if command -v gtk-update-icon-cache &>/dev/null; then
+            gtk-update-icon-cache -f -t "$icon_dir" 2>/dev/null || true
+        elif command -v xdg-icon-resource &>/dev/null; then
+            xdg-icon-resource forceupdate --theme hicolor 2>/dev/null || true
+        fi
+        # Refresh desktop database
+        if command -v update-desktop-database &>/dev/null; then
+            update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true
+        fi
     fi
 }
 

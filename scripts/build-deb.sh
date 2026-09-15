@@ -80,6 +80,14 @@ WEOF
 chmod +x "$WRAPPER"
 
 echo "[+] MailSpoof v1.2.0 installed."
+
+# Refresh icon and desktop caches
+if command -v gtk-update-icon-cache &>/dev/null; then
+    gtk-update-icon-cache -f -t /usr/share/icons/hicolor 2>/dev/null || true
+fi
+if command -v update-desktop-database &>/dev/null; then
+    update-desktop-database /usr/share/applications 2>/dev/null || true
+fi
 EOF
 
 cat > "$BUILD_DIR/mailspoof/DEBIAN/prerm" << 'EOF'

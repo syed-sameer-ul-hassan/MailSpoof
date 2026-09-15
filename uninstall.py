@@ -30,6 +30,7 @@ def print_banner():
     print()
 
 
+def ask_yes_no(prompt: str, default: str = "n") -> bool:
     while True:
         try:
             ans = input(f"{prompt} [Y/n] (default: {default}): ").strip()

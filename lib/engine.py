@@ -11,7 +11,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
-from email.utils import formatdate, make_msgid
+from email.utils import formatdate, make_msgid, formataddr
 
 from lib.core import Config, Scenario, TestResult
 
@@ -49,12 +49,14 @@ def _disclaimer_html(scenario_name: str, category: str, severity: str, version: 
         "</p>"
     )
 
+# HTML to plain text
 def _strip_html(html_body: str) -> str:
     text = re.sub(r"<\s*br\s*/?>", "\n", html_body, flags=re.IGNORECASE)
     text = re.sub(r"<\s*/p\s*>", "\n\n", text, flags=re.IGNORECASE)
     text = re.sub(r"<[^>]+>", "", text)
     return html.unescape(text)
 
+# Build RFC-compliant MIME message
 def build_mime_email(
     from_email: str,
     from_name: str,
@@ -69,7 +71,11 @@ def build_mime_email(
     headers: dict[str, str] = None,
 ) -> str:
     msg = MIMEMultipart("mixed") if attachments else MIMEMultipart("alternative")
-    msg["From"] = f"{from_name} <{from_email}>"
+    # RFC 5322 From header
+    if from_name:
+        msg["From"] = formataddr((from_name, from_email))
+    else:
+        msg["From"] = from_email
     msg["To"] = target
     msg["Subject"] = Header(subject, "utf-8")
     msg["Date"] = formatdate(localtime=True)

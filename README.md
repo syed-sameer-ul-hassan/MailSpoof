@@ -1,11 +1,3 @@
-<div align="center">
-
-| ✅ **Issue Resolved** |
-| :--- |
-| Thank you for your patience! The installation issues have been resolved. All fixes are live and the tool is fully operational. |
-
-</div>
-
 
 <p align="center">
   <img src="assets/logo.svg" alt="MailSpoof Logo" width="500">
@@ -57,17 +49,19 @@
 
 ## Features
 
-- **Built-in SMTP Server** — Multi-threaded raw-socket SMTP server with optional MX relay for local testing
+- **Built-in SMTP Server** — Multi-threaded raw-socket SMTP server with built-in upstream relay forwarding and auto device IP detection
 - **HTTP Tracking Server** — Embedded HTTP server on port 8080 for open/pixel tracking of sent emails
 - **62 Phishing Templates** — 62 pre-built HTML email templates across social media, SaaS, financial, logistics, developer platforms, and BEC
 - **Custom Template Engine** — Create, edit, preview, filter, and remove your own phishing email templates interactively
-- **External SMTP Relay** — Send via Gmail, Outlook, SendGrid, or any authenticated SMTP server with TLS/SSL support
-- **SMTP Profile Management** — Save and reuse named SMTP relay configurations
+- **Upstream SMTP Relay** — Route outbound mail through Gmail, Outlook, Brevo, SendGrid, or any authenticated SMTP server with STARTTLS/SSL
+- **Auto Default Profile** — Save a `default` SMTP profile once; every command picks it up silently with no relay prompts
+- **SMTP Profile Management** — Save and reuse named SMTP relay configurations across all commands
+- **RFC 5322 Compliant Headers** — Correct `From`/`To` header construction using `formataddr` to pass strict MTA validation
 - **Bulk Target Lists** — Send to hundreds of targets via `--target-list targets.csv` in a single command
 - **Attachment Payloads** — Attach files (PDFs, DOCX, etc.) to emails via `--attach` to test gateway filtering
-- **Advanced Headers** — Inject custom `--reply-to` and `--x-mailer` headers for advanced bypass testing
+- **Advanced Headers** — Inject custom `--reply-to` and `--x-mailer` headers for bypass testing
 - **Audit Logging** — Every test is logged with timestamps, success/failure, error details, and server details
-- **JSON & CSV Reports** — Generate assessment reports with success rates, per-test errors, and security recommendations
+- **JSON and CSV Reports** — Generate assessment reports with success rates, per-test errors, and security recommendations
 - **Template Preview** — Preview HTML/text content before sending
 - **Template Filtering** — Filter templates by name, category, tags, or content
 - **Docker Support** — Deploy instantly on any VPS using `docker-compose up`
@@ -284,25 +278,21 @@ pip install -r requirements.txt
 
 ```mermaid
 flowchart TD
-    A[mailspoof start] --> B[Start SMTP Server<br/>port 2525]
-    B --> C[Select Template ID]
-    C --> D[Enter Target Email]
-    D --> E[Enter Spoofed From<br/>ceo@company.com]
-    E --> F[Enter Subject]
-    F --> G{Use External Relay?}
-    G -->|Yes| H[Enter SMTP Host<br/>User / Pass / TLS]
-    G -->|No| I[Direct MX Delivery]
-    H --> J[Confirm & Send]
-    I --> J
-    J --> K{Delivery Result}
-    K -->|Success| L[Log to audit.log]
-    K -->|Failed| M[Show Error + Tips]
-    M --> N[Retry with Relay]
+    A[mailspoof start] --> B[Start SMTP Server on device IP:2525]
+    B --> C{Default profile saved?}
+    C -->|Yes| D[Load relay silently]
+    C -->|No| E[Prompt for relay or skip]
+    D --> F[Enter target, spoofed from, subject, template]
+    E --> F
+    F --> G[Confirm and send]
+    G --> H{Delivery result}
+    H -->|Success| I[Log to audit.log]
+    H -->|Failed| J[Show error]
 ```
 
 ### Interactive Email Spoofing Session
 
-Launch the built-in SMTP server and send a spoofed email interactively:
+The `start` command launches the built-in SMTP listener, auto-detects your device IP, and walks you through a spoofing session. If a `default` SMTP profile is saved, the relay loads silently with no prompts.
 
 ```bash
 mailspoof start --port 2525
@@ -310,10 +300,11 @@ mailspoof start --port 2525
 
 You will be prompted for:
 - Target email address
-- Spoofed sender email & display name
+- Spoofed sender email and display name
 - Subject line
-- External SMTP relay settings (optional, recommended)
 - Template ID
+
+If no `default` profile exists, you will also be asked whether to configure an external relay for this session.
 
 ### Run a Built-in Phishing Scenario
 
@@ -444,16 +435,34 @@ mailspoof start --profile gmail
 
 ### SMTP Profile Workflow
 
-Save credentials once, reuse across all send commands:
+Save credentials once. Every subsequent command picks up the `default` profile automatically with no flags needed.
+
+```bash
+# Save once
+mailspoof profile add default --host smtp.gmail.com --port 587 \
+  --user your.email@gmail.com --pass APP_PASSWORD --use-tls
+
+# From this point on, all commands use it automatically
+mailspoof start                               # interactive session, no relay prompt
+mailspoof test 1 victim@company.com          # no --smtp flags needed
+mailspoof custom --from-email ceo@co.com ... # no --smtp flags needed
+```
+
+You can still override per-command with explicit flags or a named profile:
+
+```bash
+mailspoof profile add sendgrid --host smtp.sendgrid.net --port 587 \
+  --user apikey --pass YOUR_KEY --use-tls
+
+mailspoof test 1 victim@company.com --profile sendgrid
+```
 
 ```mermaid
 flowchart LR
-    A[mailspoof profile add <name>] --> B[Store in ~/.mailspoof/config.json]
-    B --> C[mailspoof profile list]
-    C --> D[mailspoof test 1 target --profile <name>]
-    D --> E[Auto-fill host/port/user/pass]
-    E --> F[Send Email]
-    F --> G[mailspoof profile remove <name>]
+    A[mailspoof profile add default] --> B[Store in ~/.mailspoof/config.json]
+    B --> C[Any future command]
+    C --> D[Auto-load relay silently]
+    D --> E[Send email]
 ```
 
 ### View Audit Logs
@@ -580,17 +589,53 @@ Tags: custom, testing
 
 ---
 
-## SMTP Relay & Delivery
+## SMTP Relay and Delivery
 
-Direct MX delivery from residential IPs is blocked by Gmail, Yahoo, and Outlook. MailSpoof detects this and recommends using an external SMTP relay.
+Modern email providers block direct delivery from residential and cloud IPs without valid SPF records for the sending domain. MailSpoof's built-in SMTP server supports an upstream relay that forwards outbound mail through an authenticated provider.
 
-**Recommended relays:**
-- **Gmail** — `smtp.gmail.com:587` (use App Passwords)
-- **Outlook** — `smtp.office365.com:587`
-- **SendGrid** — `smtp.sendgrid.net:587`
-- **Custom** — Any authenticated SMTP server
+### How the relay works
 
-See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for delivery error fixes.
+The spoofed `From` address is what the recipient sees. The relay is the transport layer only and never appears in the email content.
+
+```
+Your machine
+    -> MailSpoof SMTP server (device IP:2525)
+        -> Upstream relay (smtp.gmail.com:587, authenticated)
+            -> Recipient mail server
+                -> Inbox shows: From: ceo@company.com
+```
+
+### One-time setup
+
+```bash
+mailspoof profile add default \
+  --host smtp.gmail.com \
+  --port 587 \
+  --user your.email@gmail.com \
+  --pass "xxxx xxxx xxxx xxxx" \
+  --use-tls
+```
+
+Generate a Gmail App Password at: https://myaccount.google.com/apppasswords
+
+After saving the profile, run `mailspoof start` with no additional flags. The relay is loaded silently and all mail routes through it.
+
+### Supported relays
+
+| Provider | Host | Port | Notes |
+|---|---|---|---|
+| Gmail | smtp.gmail.com | 587 | Requires App Password, not account password |
+| Outlook / Microsoft 365 | smtp.office365.com | 587 | Account password or OAuth |
+| Brevo | smtp-relay.brevo.com | 587 | Free 300 emails/day, no domain required |
+| SendGrid | smtp.sendgrid.net | 587 | API key as password |
+| Amazon SES | email-smtp.us-east-1.amazonaws.com | 587 | SES SMTP credentials |
+| Custom server | your.mail.server | 25/587/465 | As configured |
+
+### Why direct MX delivery fails
+
+When MailSpoof connects directly to a recipient mail server (e.g., Gmail MX, Cloudflare Email Routing), that server checks whether the connecting IP is authorized by the sender domain's SPF record. Residential and cloud IPs are never listed for spoofed domains, so every major provider rejects the connection. This is expected behavior. The authenticated SMTP relay bypasses IP reputation checks because the relay itself has an established trusted sender history.
+
+See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for full error code reference.
 
 ---
 
